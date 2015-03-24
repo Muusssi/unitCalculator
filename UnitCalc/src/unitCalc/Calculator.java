@@ -69,7 +69,6 @@ public class Calculator {
 		//General expression
 		else {
 			LinkedList<Variable> postFix = toPostFix(lexing);
-			Variable ans = evaluate(postFix);
 			/*
 			System.out.println("--------");
 			Iterator<Variable> itr = postFix.iterator();
@@ -84,6 +83,7 @@ public class Calculator {
 				
 			}
 			*/
+			Variable ans = evaluate(postFix);
 			if (ans != null) {
 				ans.show();
 				ans = new Variable(ans.value, "ans", ans.siBase);
@@ -119,7 +119,14 @@ public class Calculator {
 				stack.add(var);
 			}
 		}
-		return stack.poll();
+		if (stack.size() != 1) {
+			inform("Evaluation error");
+			return null;
+		}
+		else {
+			return stack.poll();
+		}
+		
 	}
 	
 	
@@ -135,6 +142,7 @@ public class Calculator {
 		boolean expectingUnit = false;
 		while (itr.hasNext()) {
 			tok = itr.next();
+			
 			// ID
 			if (tok.type == CalcToken.TokenType.ID) {
 				if (expectingUnit) {
@@ -187,11 +195,10 @@ public class Calculator {
 						inform("Syntax error: Parenthesis do not match! Left missing.");
 						return null;
 					}
-					else if (var.isOperation) {
+					if (var.isOperation) {
 						postFix.add(var);
 					}
 					else if (var.op == CalcToken.TokenType.BEGIN) {
-						stack.pollLast();
 						break;
 					}
 					else {
@@ -224,20 +231,28 @@ public class Calculator {
 	}
 	
 	
-	static boolean evaluatesFirst(CalcToken.TokenType op2, CalcToken.TokenType op1) {
-		if (op2 == CalcToken.TokenType.BEGIN || op1 == CalcToken.TokenType.BEGIN) {
+	static boolean evaluatesFirst(CalcToken.TokenType fromStack, CalcToken.TokenType nextOp) {
+		if (fromStack == CalcToken.TokenType.BEGIN || nextOp == CalcToken.TokenType.BEGIN) {
 			return false;
 		}
-		if (op1 == op2) {
+		else if (nextOp == fromStack) {
 			return true;
 		}
-		else if (op1 == CalcToken.TokenType.SUM || op1 == CalcToken.TokenType.SUB) {
+		else if (nextOp == CalcToken.TokenType.SUM || nextOp == CalcToken.TokenType.SUB) {
 			return true;
 		}
-		else if (op2 == CalcToken.TokenType.DIV || op2 == CalcToken.TokenType.MUL) {
-			return true;
+		else if (nextOp == CalcToken.TokenType.DIV || nextOp == CalcToken.TokenType.MUL) {
+			if (fromStack != CalcToken.TokenType.SUM && fromStack != CalcToken.TokenType.SUB) {
+				return true;
+			}
+			return false;
 		}
-		return false;
+		else if (nextOp == CalcToken.TokenType.POW && fromStack != CalcToken.TokenType.POW) {
+			return false;
+		}
+		else {
+			return false;
+		}
 	}
 	
 	

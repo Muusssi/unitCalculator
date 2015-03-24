@@ -52,6 +52,7 @@ public class Variable {
 	/** For operators and parenthesis */
 	public Variable(CalcToken.TokenType op, boolean isOperator) {
 		this.op = op;
+		this.id = "op";
 		this.isOperation = isOperator;
 	}
 	
@@ -90,6 +91,40 @@ public class Variable {
 	/** Calculates the given operation for the two varibles. */
 	public static Variable calc(Variable var1, CalcToken.TokenType op, Variable var2) {
 		int[] ansSIbase = new int[7];
+		
+		if (op == CalcToken.TokenType.POW) {
+			if (!var2.isUnitless()) {
+				Calculator.inform("Math error: powers must be unitless non-negative integers.");
+				return null;
+			}
+			boolean var2isInt;
+			int pow = 0;
+			//Check that the power is integer
+			try {
+				pow = var2.value.toBigIntegerExact().intValue();
+		        var2isInt = true;
+		    } catch (ArithmeticException ex) {
+		    	var2isInt = false;
+		    }
+			 
+			if ( var2isInt) {
+				if (pow < 0) {
+					Calculator.inform("Math error: negative powers are not supported.");
+					return null;
+				}
+				for (int i=0; i<7; i++) {
+					ansSIbase[i] = var1.siBase[i]*pow;
+				}
+				return new Variable(var1.value.pow(pow), null, ansSIbase);
+			}
+			else {
+				Calculator.inform("Math error: only non-negative integer powers are supported.");
+				return null;
+			}
+				
+			
+		}
+		
 		if (op == CalcToken.TokenType.MUL) {
 			for (int i=0; i<7; i++) {
 				ansSIbase[i] = var1.siBase[i] + var2.siBase[i];
@@ -129,6 +164,7 @@ public class Variable {
 		}
 		return null;
 	}
+	
 	
 	/** Prints the useful information for this variable or constant. */
 	public void show() {

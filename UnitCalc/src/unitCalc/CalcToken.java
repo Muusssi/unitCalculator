@@ -3,7 +3,7 @@ package unitCalc;
 public class CalcToken {
 	
 	public enum TokenType {
-		SUM, SUB, MUL, DIV,
+		SUM, SUB, MUL, DIV, POW,
 		BEGIN, END, EQUAL,
 		ID, NUM,
 		ERR,

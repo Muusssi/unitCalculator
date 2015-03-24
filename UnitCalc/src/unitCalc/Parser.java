@@ -72,6 +72,10 @@ public class Parser {
 			tok = new CalcToken(CalcToken.TokenType.DIV, i);
 			i++;
 		}
+		else if (c == '^') {
+			tok = new CalcToken(CalcToken.TokenType.POW, i);
+			i++;
+		}
 		else if (c == '(') {
 			tok = new CalcToken(CalcToken.TokenType.BEGIN, null, i);
 			i++;
