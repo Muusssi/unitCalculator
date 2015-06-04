@@ -1,6 +1,7 @@
 package unitCalc;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Scanner;
@@ -45,11 +46,13 @@ public class Calculator {
 			}
 			
 		}
+		/*
 		// translation
 		else if (lexing.size() == 2 && lexing.get(1).type == CalcToken.TokenType.ID) {
 			// TODO translation
 			System.out.println("Translations not implemented yet");
 		}
+		*/
 		// Assignement
 		else if (lexing.size() > 2 && lexing.get(1).type == CalcToken.TokenType.EQUAL) {
 			if (lexing.get(0).type != CalcToken.TokenType.ID) {
@@ -262,18 +265,17 @@ public class Calculator {
 		
 		// Base units
 		Measure length = new Measure("length", 1,0,0,0,0,0,0);
-		length.setBaseUnit("metesr", "m");
+		length.setBaseUnit("meters", "m");
 		length.baseUnit.addSIScalers(1);
 		length.addUnit("inches", "in", new BigDecimal("0.0254"));
 		length.addUnit("feet", "ft", new BigDecimal("0.3048"));
 		length.addUnit("yard", "yd", new BigDecimal("0.9144"));
 		length.addUnit("miles", "mi", new BigDecimal("1609.344"));
 		length.addUnit("nautical miles", "nmi", new BigDecimal("1852"));
-		length.addUnit("yard", "yd", new BigDecimal("0.9144"));
 		length.addUnit("light-years", "ly", new BigDecimal("9.46055E15"));
 		length.addUnit("parsecs", "pc", new BigDecimal("3.085678E16"));
 		length.addUnit("Astronomical Units", "AU", new BigDecimal("1.495979E11"));
-		length.addUnit("Ångstroms", "Å", new BigDecimal("1E-10"));
+		length.addUnit("ÔøΩngstroms", "ÔøΩ", new BigDecimal("1E-10"));
 		
 		
 		Measure mass = new Measure("mass", 0,1,0,0,0,0,0);
@@ -321,6 +323,9 @@ public class Calculator {
 		Measure frequency = new Measure("frequency", 0,0,-1,0,0,0,0);
 		frequency.setBaseUnit("hertz", "Hz");
 		frequency.baseUnit.addSIScalers(1);
+		frequency.addUnit("revolutions per minute", "rpm", new BigDecimal("0.01666666666666666666666666666666666666666666666666666666666666667"));
+
+
 		
 		Measure force = new Measure("force", 1,1,-2,0,0,0,0);
 		force.setBaseUnit("newtons", "N");
@@ -333,17 +338,22 @@ public class Calculator {
 		Unit.unitMap.get("bar").addSIScalers(1);
 		pressure.addUnit("atmosferic pressure", "atm", new BigDecimal("101325"));
 		pressure.addUnit("torr", "torr", new BigDecimal("133.322"));
+		pressure.addUnit("atmospheres", "at", new BigDecimal("101.325"));
 		pressure.addUnit("millimeter of mercury", "mmHg", new BigDecimal("133.322"));
 		pressure.addUnit("pounds per square inch", "psi", new BigDecimal("6894.757"));
+		pressure.addUnit("pounds per square foot", "pft", new BigDecimal("47.88026"));
 		
 		Measure energy = new Measure("energy", 2,1,-2,0,0,0,0);
 		energy.setBaseUnit("joules", "J");
 		energy.baseUnit.addSIScalers(1);
 		energy.addUnit("electron volts", "eV", new BigDecimal("1.6021773E-19"));
+		Unit.unitMap.get("eV").addSIScalers(1);
 		energy.addUnit("calories", "cal", new BigDecimal("4.1868"));
 		Unit.unitMap.get("cal").addSIScalers(1);
 		energy.addUnit("watt hours", "Wh", new BigDecimal("3.6E3"));
 		Unit.unitMap.get("Wh").addSIScalers(1);
+		energy.addUnit("newton meters", "Nm", new BigDecimal("1"));
+		Unit.unitMap.get("Nm").addSIScalers(1);
 		
 		Measure power = new Measure("power", 2,1,-3,0,0,0,0);
 		power.setBaseUnit("watts", "W");
@@ -379,6 +389,7 @@ public class Calculator {
 		magneticFluxDensity.setBaseUnit("teslas", "T");
 		magneticFluxDensity.baseUnit.addSIScalers(1);
 		magneticFluxDensity.addUnit("gauss", "G", new BigDecimal("0.0001"));
+		Unit.unitMap.get("G").addSIScalers(1);
 		
 		Measure inductance = new Measure("inductance", 2,1,-2,-2,0,0,0);
 		inductance.setBaseUnit("henrys", "H");
@@ -411,14 +422,38 @@ public class Calculator {
 		Unit.unitMap.get("l").addSIScalers(1);
 		volume.addUnit("barrel", "bbl", new BigDecimal("0.1589873"));
 		volume.addUnit("gallon (US)", "gal", new BigDecimal("3.785412E-3"));
-		volume.addUnit("gallon (UK)", "gal_uk", new BigDecimal("4.546092E-3"));
+		Unit.unitMap.get("gal").addAlternativeAbr("gal_us");
+		volume.addUnit("gallon (Imperial)", "gal_uk", new BigDecimal("4.546092E-3"));
+		volume.addUnit("cubic feet", "cu_ft", new BigDecimal("0.0283168"));
+		Unit.unitMap.get("cu_ft").addAlternativeAbr("ft2");
+		volume.addUnit("cubic inches", "cu_in", new BigDecimal("1.638706e-5"));
+		Unit.unitMap.get("cu_in").addAlternativeAbr("in2");
+		volume.addUnit("cubic yards", "cu_yd", new BigDecimal("0.7645549"));
+		Unit.unitMap.get("cu_yd").addAlternativeAbr("yd2");
+		volume.addUnit("cups (US)", "cup", new BigDecimal("0.0002365"));
+		volume.addUnit("pints (Imperial)", "pints", new BigDecimal("0.0005682"));
+		volume.addUnit("pints (US)", "pints_us", new BigDecimal("0.0004731"));
 		
 		Measure velocity = new Measure("velocity", 1,0,-1,0,0,0,0);
 		velocity.setBaseUnit("meters per second", "m|s");
 		velocity.baseUnit.addSIScalers(1);
+		velocity.addUnit("meters per minute", "m|min", new BigDecimal("1").divide(new BigDecimal("60"), 100, RoundingMode.HALF_UP));
+		Unit.unitMap.get("m|min").addSIScalers(1);
+		velocity.addUnit("meters per hour", "m|h", new BigDecimal("1").divide(new BigDecimal("3600"), 100, RoundingMode.HALF_UP));
+		Unit.unitMap.get("m|h").addSIScalers(1);
 		velocity.addUnit("knotts", "kn", new BigDecimal("0.5144"));
 		velocity.addUnit("mach", "M", new BigDecimal("331"));
-		
+		velocity.addUnit("feet per second", "ft|s", new BigDecimal("0.3048"));
+		velocity.addUnit("feet per second", "ft|min", new BigDecimal("0.00508"));
+
+		Measure pace = new Measure("pace", -1,0,1,0,0,0,0);
+		pace.setBaseUnit("seconds per meter", "s|m");
+		pace.addUnit("minutes per mile", "min|mi", new BigDecimal("60").divide(new BigDecimal("1609.344"), 100, RoundingMode.HALF_UP));
+		pace.addUnit("minutes per kilometer", "min|km", new BigDecimal("60").divide(new BigDecimal("1000"), 100, RoundingMode.HALF_UP));
+		pace.addUnit("seconds per kilometer", "s|km", new BigDecimal("1").divide(new BigDecimal("1000"), 100, RoundingMode.HALF_UP));
+		pace.addUnit("seconds per kilometer", "s|km", new BigDecimal("1").divide(new BigDecimal("1000"), 100, RoundingMode.HALF_UP));
+
+
 		Measure volumetricFlow = new Measure("volumetricFlow", 3,0,-1,0,0,0,0);
 		volumetricFlow.setBaseUnit("cubic meters per second", "m3|s");
 		volumetricFlow.baseUnit.addSIScalers(3);
@@ -442,10 +477,6 @@ public class Calculator {
 		Measure angularMomentum = new Measure("angularMomentum", 2,1,-1,0,0,0,0);
 		angularMomentum.setBaseUnit("newton meter seconds", "Nms");
 		angularMomentum.baseUnit.addSIScalers(1);
-		
-		Measure torque = new Measure("torque", 2,1,-2,0,0,0,0);
-		torque.setBaseUnit("newton meters", "Nm");
-		torque.baseUnit.addSIScalers(1);
 		
 		Measure yank = new Measure("yank", 1,1,-3,0,0,0,0);
 		yank.setBaseUnit("newtons per second", "N|m");
@@ -568,12 +599,11 @@ public class Calculator {
 		
 		Measure resiporalTemperature = new Measure("resiporalTemperature", 0,0,0,0,-1,0,0);
 		resiporalTemperature.setBaseUnit("resiporal kelvin", "1/K");
-		resiporalTemperature.baseUnit.addSIScalers(1);
 		
 		
 		
 		//Still missing
-		Measure gravitationalConstantMeasure = new Measure("force", 3,-1,-2,0,0,0,0);
+		Measure gravitationalConstantMeasure = new Measure("gravitationalConstantMeasure", 3,-1,-2,0,0,0,0);
 		gravitationalConstantMeasure.setBaseUnit("newton square meter per square kilogram", "Nm2|kg2");
 		
 		

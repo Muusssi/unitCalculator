@@ -40,15 +40,55 @@ public class Measure {
 	}
 	
 	
+	
 	public static Measure getMeasure(int m,int kg,int s,int A,int K,int Cd, int mol) {
 		if (measureMap.containsKey(Integer.toString(m)+"|"+Integer.toString(kg)+"|"+Integer.toString(s)+"|"+Integer.toString(A)
 							+"|"+Integer.toString(K)+"|"+Integer.toString(Cd)+"|"+Integer.toString(mol))) {
 			return measureMap.get(Integer.toString(m)+"|"+Integer.toString(kg)+"|"+Integer.toString(s)+"|"+Integer.toString(A)
 					+"|"+Integer.toString(K)+"|"+Integer.toString(Cd)+"|"+Integer.toString(mol));
 		}
+		// An uncommon measure -> generate unit and measure
 		else {
-			return null;
+			
+			//Integer.toString(m)+"|"+Integer.toString(kg)+"|"+Integer.toString(s)+"|"+Integer.toString(A)
+			//+"|"+Integer.toString(K)+"|"+Integer.toString(Cd)+"|"+Integer.toString(mol)
+			Measure newMeasure = generateNewMeasure(m,kg,s,A,K,Cd,mol);
+			return newMeasure;
 		}
+	}
+	
+	/**
+	 * For the situation where the resulting measure is unknown and a new must be generated from the base.
+	 */
+	public static Measure generateNewMeasure(int m,int kg,int s,int A,int K,int Cd, int mol) {
+		
+		String newUnitName = "";
+		String newUnitNameEnding = "";
+		if (m>0) {newUnitName = newUnitName + "m"+Integer.toString(m);}
+		if (kg>0) {newUnitName = newUnitName + "kg"+Integer.toString(kg);}
+		if (s>0) {newUnitName = newUnitName + "s"+Integer.toString(s);}
+		if (A>0) {newUnitName = newUnitName + "A"+Integer.toString(A);}
+		if (K>0) {newUnitName = newUnitName + "K"+Integer.toString(K);}
+		if (Cd>0) {newUnitName = newUnitName + "Cd"+Integer.toString(Cd);}
+		if (mol>0) {newUnitName = newUnitName + "mol"+Integer.toString(mol);}
+		if (newUnitName.equals("")) {
+			newUnitName = newUnitName +"1";
+		}
+		if (m<0) {newUnitNameEnding = newUnitNameEnding + "m"+Integer.toString(-m);}
+		if (kg<0) {newUnitNameEnding = newUnitNameEnding + "kg"+Integer.toString(-kg);}
+		if (s<0) {newUnitNameEnding = newUnitNameEnding + "s"+Integer.toString(-s);}
+		if (A<0) {newUnitNameEnding = newUnitNameEnding + "A"+Integer.toString(-A);}
+		if (K<0) {newUnitNameEnding = newUnitNameEnding + "K"+Integer.toString(-K);}
+		if (Cd<0) {newUnitNameEnding = newUnitNameEnding + "Cd"+Integer.toString(-Cd);}
+		if (mol<0) {newUnitNameEnding = newUnitNameEnding + "mol"+Integer.toString(-mol);}
+		if (!newUnitNameEnding.equals("")) {
+			newUnitName = newUnitName +"|"+newUnitNameEnding;
+		}
+		
+		Measure newMeasure = new Measure(newUnitName, m, kg, s, A, K, Cd, mol);
+		newMeasure.setBaseUnit(newUnitName, newUnitName);
+		return newMeasure;
+		
 	}
 	
 }

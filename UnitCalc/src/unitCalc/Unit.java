@@ -26,6 +26,10 @@ public class Unit {
 		unitMap.put(this.abr, this);
 	}
 	
+	public void addAlternativeAbr(String altAbr) {
+		Unit.unitMap.put(altAbr, this);
+	}
+	
 	/** Prints the useful information for this unit. */
 	public void show() {
 		if (this.isBaseUnit) {

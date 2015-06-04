@@ -7,7 +7,7 @@ import java.util.HashMap;
 /**
  * This class represents a object that is used to build calculations.
  * It can be a variable, constant, operation, 
- * @author tommioinonen
+ * @author Tommi Oinonen
  *
  */
 public class Variable {
@@ -95,6 +95,7 @@ public class Variable {
 		if (op == CalcToken.TokenType.POW) {
 			if (!var2.isUnitless()) {
 				Calculator.inform("Math error: powers must be unitless non-negative integers.");
+				var2.show();
 				return null;
 			}
 			boolean var2isInt;
@@ -161,6 +162,8 @@ public class Variable {
 		}
 		else {
 			Calculator.inform("Error: Can't subtract or add variables that have different measures.");
+			var1.show();
+			var2.show();
 		}
 		return null;
 	}
