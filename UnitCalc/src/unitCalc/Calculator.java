@@ -108,7 +108,12 @@ public class Calculator {
 		while (!postFix.isEmpty()) {
 			var = postFix.poll();
 			if (var.isOperation) {
-				if (stack.size() > 1) {
+				if (var.op == CalcToken.TokenType.UMIN && stack.size() >= 1) {
+					// Unary minus
+					var1 = stack.pollLast();
+					stack.add(Variable.calc(var1, var.op, null));
+				}
+				else if (stack.size() > 1) {
 					var2 = stack.pollLast();
 					var1 = stack.pollLast();
 					stack.add(Variable.calc(var1, var.op, var2));
@@ -142,6 +147,7 @@ public class Calculator {
 		
 		Iterator<CalcToken> itr = inFix.iterator();
 		CalcToken tok;
+		CalcToken previousTok = null;
 		boolean expectingUnit = false;
 		while (itr.hasNext()) {
 			tok = itr.next();
@@ -211,21 +217,27 @@ public class Calculator {
 				}
 			}
 			else if (tok.operator) {
-				expectingUnit = false;
-				while (!stack.isEmpty() && evaluatesFirst(stack.getLast().op, tok.type)) {
-					postFix.add(stack.pollLast());
+				if (tok.type == CalcToken.TokenType.SUB && (previousTok == null || previousTok.operator || previousTok.type == CalcToken.TokenType.BEGIN)) {
+					stack.add(new Variable(CalcToken.TokenType.UMIN, true));
 				}
-				stack.add(new Variable(tok.type, true));
+				else {
+					expectingUnit = false;
+					while (!stack.isEmpty() && evaluatesFirst(stack.getLast().op, tok.type)) {
+						postFix.add(stack.pollLast());
+					}
+					stack.add(new Variable(tok.type, true));
+				}
 			}
 			
 			else {
 				System.out.println("Unimplemented token in postfixing");
 			}
+			previousTok = tok;
 		}
 		while (!stack.isEmpty()) {
 			Variable var = stack.pollLast();
 			if (var.op == CalcToken.TokenType.END) {
-				inform("Synatax error: Parenthesis do not match! Right missing.");
+				inform("Syntax error: Parenthesis do not match! Right missing.");
 				return null;
 			}
 			postFix.add(var);
@@ -235,6 +247,9 @@ public class Calculator {
 	
 	
 	static boolean evaluatesFirst(CalcToken.TokenType fromStack, CalcToken.TokenType nextOp) {
+		if (fromStack == CalcToken.TokenType.UMIN) {
+			return true;
+		}
 		if (fromStack == CalcToken.TokenType.BEGIN || nextOp == CalcToken.TokenType.BEGIN) {
 			return false;
 		}

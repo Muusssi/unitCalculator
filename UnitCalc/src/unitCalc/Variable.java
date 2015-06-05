@@ -92,6 +92,11 @@ public class Variable {
 	public static Variable calc(Variable var1, CalcToken.TokenType op, Variable var2) {
 		int[] ansSIbase = new int[7];
 		
+		if (op == CalcToken.TokenType.UMIN) {
+			System.arraycopy(var1.siBase, 0, ansSIbase, 0, 7);
+			return new Variable(var1.value.negate(), null, ansSIbase);
+		}
+
 		if (op == CalcToken.TokenType.POW) {
 			if (!var2.isUnitless()) {
 				Calculator.inform("Math error: powers must be unitless non-negative integers.");

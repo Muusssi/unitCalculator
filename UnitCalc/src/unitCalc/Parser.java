@@ -166,7 +166,7 @@ public class Parser {
 		return tok;
 	}
 	
-	
+	// For testing
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		LinkedList<CalcToken> tokens = lex("15m+22ft/2N*33.3m/s");
