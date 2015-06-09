@@ -25,9 +25,13 @@ public class Measure {
 		siBase[4] = K;
 		siBase[5] = Cd;
 		siBase[6] = mol;
+		String baseMapping = Integer.toString(m)+"|"+Integer.toString(kg)+"|"+Integer.toString(s)+"|"+Integer.toString(A)
+								+"|"+Integer.toString(K)+"|"+Integer.toString(Cd)+"|"+Integer.toString(mol);
+		if (measureMap.containsKey(baseMapping)) {
+			System.out.println("WARNING: duplicate measure "+this.name+" -- "+measureMap.get(baseMapping).name);
+		}
 		measureMap.put(this.name, this);
-		measureMap.put(Integer.toString(m)+"|"+Integer.toString(kg)+"|"+Integer.toString(s)+"|"+Integer.toString(A)
-							+"|"+Integer.toString(K)+"|"+Integer.toString(Cd)+"|"+Integer.toString(mol), this);
+		measureMap.put(baseMapping, this);
 	}
 	
 	

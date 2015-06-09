@@ -24,6 +24,7 @@ public class CalcGUI extends JFrame {
 	class Calculate implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
 			String input = inputField.getText();
+			Calculator.inform(input);
 			previousInputs.addFirst(input);
 			Calculator.calculate(input);
 			inputField.setText("");

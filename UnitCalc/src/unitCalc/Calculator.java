@@ -357,17 +357,21 @@ public class Calculator {
 		force.setBaseUnit("newtons", "N");
 		force.baseUnit.addSIScalers(1);
 		
-		Measure pressure = new Measure("pressure", -1,1,-2,0,0,0,0);
+		Measure pressure = new Measure("pressure or energy density", -1,1,-2,0,0,0,0);
+		//Also energy density
 		pressure.setBaseUnit("pascals", "Pa");
 		pressure.baseUnit.addSIScalers(1);
 		pressure.addUnit("bar", "bar", new BigDecimal("100000"));
 		Unit.unitMap.get("bar").addSIScalers(1);
+		pressure.addUnit("joules per cubic meter", "J|m3", new BigDecimal("1"));
+		Unit.unitMap.get("J|m3").addSIScalers(1);
 		pressure.addUnit("atmosferic pressure", "atm", new BigDecimal("101325"));
 		pressure.addUnit("torr", "torr", new BigDecimal("133.322"));
 		pressure.addUnit("atmospheres", "at", new BigDecimal("101.325"));
 		pressure.addUnit("millimeter of mercury", "mmHg", new BigDecimal("133.322"));
 		pressure.addUnit("pounds per square inch", "psi", new BigDecimal("6894.757"));
 		pressure.addUnit("pounds per square foot", "pft", new BigDecimal("47.88026"));
+
 		
 		Measure energy = new Measure("energy", 2,1,-2,0,0,0,0);
 		energy.setBaseUnit("joules", "J");
@@ -500,10 +504,6 @@ public class Calculator {
 		momentum.setBaseUnit("newton seconds", "Ns");
 		momentum.baseUnit.addSIScalers(1);
 		
-		Measure angularMomentum = new Measure("angularMomentum", 2,1,-1,0,0,0,0);
-		angularMomentum.setBaseUnit("newton meter seconds", "Nms");
-		angularMomentum.baseUnit.addSIScalers(1);
-		
 		Measure yank = new Measure("yank", 1,1,-3,0,0,0,0);
 		yank.setBaseUnit("newtons per second", "N|m");
 		yank.baseUnit.addSIScalers(1);
@@ -529,9 +529,11 @@ public class Calculator {
 		molarVolume.setBaseUnit("cubic metre per mole", "m3|mol");
 		molarVolume.baseUnit.addSIScalers(3);
 		
-		Measure action = new Measure("action", 2,1,-1,0,0,0,0);
+		Measure action = new Measure("action or angularMomentum", 2,1,-1,0,0,0,0);
 		action.setBaseUnit("joule seconds", "Js");
 		action.baseUnit.addSIScalers(1);
+		action.addUnit("newton meter seconds", "Nms", new BigDecimal("1") );
+		Unit.unitMap.get("Nms").addSIScalers(1);
 		
 		Measure entropy = new Measure("entropy", 2,1,-2,0,-1,0,0);
 		entropy.setBaseUnit("joule per kelvin", "J|K");
@@ -553,9 +555,6 @@ public class Calculator {
 		specificEnergy.setBaseUnit("joule per kilogram", "J|kg");
 		specificEnergy.baseUnit.addSIScalers(1);
 		
-		Measure energyDensity = new Measure("energyDensity", -1,1,-2,0,0,0,0);
-		energyDensity.setBaseUnit("joule per cubic meter", "J|m3");
-		energyDensity.baseUnit.addSIScalers(1);
 		
 		Measure surfaceTension = new Measure("surfaceTension", 0,1,-2,0,0,0,0);
 		surfaceTension.setBaseUnit("newton per meter", "N|m");
@@ -566,9 +565,13 @@ public class Calculator {
 		heatFluxDensity.setBaseUnit("watts per square meter", "W|m2");
 		heatFluxDensity.baseUnit.addSIScalers(1);
 		
-		Measure thermalConductivity = new Measure("thermalConductivity", 1,1,-3,-1,0,0,0);
+		Measure thermalConductivity = new Measure("thermalConductivity", 1,1,-3,0,-1,0,0);
 		thermalConductivity.setBaseUnit("watts per meter kelvin", "W|mK");
 		thermalConductivity.baseUnit.addSIScalers(1);
+		
+		Measure electricFieldStrength = new Measure("electricFieldStrength", 1,1,-3,-1,0,0,0);
+		electricFieldStrength.setBaseUnit("volt per meter", "V|m");
+		electricFieldStrength.baseUnit.addSIScalers(1);
 		
 		Measure kinematicViscosity = new Measure("kinematicViscosity", 2,0,-1,0,0,0,0);
 		kinematicViscosity.setBaseUnit("square meter per second", "m2|s");
@@ -607,17 +610,10 @@ public class Calculator {
 		permeability.setBaseUnit("henry per meter", "H|m");
 		permeability.baseUnit.addSIScalers(1);
 		
-		Measure electricFieldStrength = new Measure("electricFieldStrength", 1,1,-3,-1,0,0,0);
-		electricFieldStrength.setBaseUnit("volt per meter", "V|m");
-		electricFieldStrength.baseUnit.addSIScalers(1);
 		
 		Measure magneticFieldStrength = new Measure("magneticFieldStrength", -1,0,0,1,0,0,0);
 		magneticFieldStrength.setBaseUnit("ampere per meter", "A|m");
 		magneticFieldStrength.baseUnit.addSIScalers(1);
-		
-		Measure luminance = new Measure("luminance", -2,0,0,0,0,1,0);
-		luminance.setBaseUnit("candela per square meter", "A|m");
-		luminance.baseUnit.addSIScalers(1);
 		
 		Measure resistivity = new Measure("resistivity", 3,1,-3,-2,0,0,0);
 		resistivity.setBaseUnit("ohm meter", "ohmm");
@@ -663,7 +659,7 @@ public class Calculator {
 	}
 	
 	public static void main(String[] args) {
-		
+		Calculator.initCalculator();
 		
 		// the main loop
 		Scanner reader = new Scanner(System.in);
