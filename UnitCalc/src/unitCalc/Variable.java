@@ -180,26 +180,26 @@ public class Variable {
 			this.id = "var";
 		}
 		if (this.isConstant) {
-			System.out.println("Constant: "+this.id+" - "+this.name);
+			Calculator.inform("Constant: "+this.id+" - "+this.name);
 		}
 		else {
-			System.out.println("Variable: "+this.id);
+			Calculator.inform("Variable: "+this.id);
 		}
-		System.out.print("= ");
+		Calculator.inform("= ");
 		
 		int scale = this.value.scale();
 		if (scale > 50) {
 			scale = 80;
 		}
 		if (this.isUnitless()) {
-			System.out.println(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString());
+			Calculator.inform(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString());
 		}else {
 			if (this.unit == null) {
 				Measure m = Measure.getMeasure(this.siBase[0], this.siBase[1], this.siBase[2], this.siBase[3], this.siBase[4], this.siBase[5], this.siBase[6]);
 				this.measure = m;
 				this.unit = m.baseUnit;
 			}
-			System.out.println(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.unit.measure.baseUnit.abr);
+			Calculator.inform(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.unit.measure.baseUnit.abr);
 		}
 	}
 

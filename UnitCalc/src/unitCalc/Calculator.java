@@ -6,17 +6,28 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+import javax.swing.JTextArea;
+
 public class Calculator {
 	
 	static String lastCalculation = null;
+	static JTextArea resultArea = null;
 
 	public static void inform(String info) {
-		System.out.println(info);
+		if (resultArea == null) {
+			System.out.println(info);
+		}
+		else {
+			resultArea.append(info+"\n");
+		}
 	}
 	
+	public static void setResultArea(JTextArea area) {
+		resultArea = area;
+	}
 	
 	public static void showError(int index) {
-		System.out.println(lastCalculation);
+		Calculator.inform(lastCalculation);
 		String pointerLine = "";
 		for (int j=0; j<index; j++) {
 			pointerLine += " ";
@@ -92,7 +103,7 @@ public class Calculator {
 				ans = new Variable(ans.value, "ans", ans.siBase);
 			}
 		}
-		System.out.println("-------------");
+		Calculator.inform("-------------");
 		return null;
 	}
 	
@@ -211,7 +222,7 @@ public class Calculator {
 						break;
 					}
 					else {
-						System.out.println("ERR");
+						Calculator.inform("ERR");
 						return null;
 					}
 				}
@@ -272,10 +283,10 @@ public class Calculator {
 			return false;
 		}
 	}
+
 	
-	
-	public static void main(String[] args) {
-		
+	public static void initCalculator() {
+
 		//  [m, kg, s, A, K, Cd, mol ]
 		
 		// Base units
@@ -649,8 +660,9 @@ public class Calculator {
 		
 		Variable.makeConstant(new BigDecimal("6.6260755E-34"), "h", action.siBase, "Planck's constant");
 		
-		
-		
+	}
+	
+	public static void main(String[] args) {
 		
 		
 		// the main loop

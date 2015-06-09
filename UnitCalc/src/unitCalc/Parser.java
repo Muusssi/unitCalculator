@@ -1,6 +1,5 @@
 package unitCalc;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class Parser {
@@ -173,10 +172,10 @@ public class Parser {
 		if (tokens != null) {
 			for (int i=0; i<tokens.size(); i++) {
 				if (tokens.get(i).id != null) {
-					System.out.println(tokens.get(i).type+" "+tokens.get(i).id);
+					Calculator.inform(tokens.get(i).type+" "+tokens.get(i).id);
 				}
 				else {
-					System.out.println(tokens.get(i).type+" ");
+					Calculator.inform(tokens.get(i).type+" ");
 				}
 				
 			}
