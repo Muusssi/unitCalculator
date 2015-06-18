@@ -57,9 +57,8 @@ public class CalcGUI extends JFrame {
 	    calculateButton.addActionListener(new Calculate());
 	    calculateButton.setToolTipText("Click to perform the calcultation");
 	    middlePanel.add(calculateButton);
-	    
-	    
 	    getRootPane().setDefaultButton(calculateButton);
+	    
 	    
 		
 	    // Setting up exit listener
@@ -68,6 +67,7 @@ public class CalcGUI extends JFrame {
 				System.exit(0);
 			}
 		});
+		
 		
 		inputField.addKeyListener(new KeyListener() {
 
@@ -103,10 +103,10 @@ public class CalcGUI extends JFrame {
 			
 		});
 		
-	    add ( middlePanel );
-	    pack ();
-	    setLocationRelativeTo ( null );
-	    setVisible ( true );
+	    add(middlePanel);
+	    pack();
+	    setLocationRelativeTo (null);
+	    setVisible (true);
 		
 	}
 

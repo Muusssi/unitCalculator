@@ -104,9 +104,10 @@ public class Parser {
 				current += c;
 				i++;
 			}
-			// if decimals
-			if (input.length() > i+1 && input.charAt(i) == '.' && Character.isDigit(input.charAt(i+1))) {
-				c = input.charAt(i);
+			// if decimals (both point and colon are accepted as decimal separators)
+			if (input.length() > i+1 && (input.charAt(i) == '.' || input.charAt(i) == ',') && Character.isDigit(input.charAt(i+1))) {
+				//c = input.charAt(i);
+				c = '.';
 				current += c;
 				i++;
 				c = input.charAt(i);

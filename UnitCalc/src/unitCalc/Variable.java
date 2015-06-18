@@ -98,11 +98,20 @@ public class Variable {
 		}
 
 		if (op == CalcToken.TokenType.POW) {
+			
+			
 			if (!var2.isUnitless()) {
 				Calculator.inform("Math error: powers must be unitless non-negative integers.");
 				var2.show();
 				return null;
 			}
+			int powOffLimit = var2.value.compareTo(new BigDecimal("100"));
+			if (powOffLimit == 1) {
+				Calculator.inform("Math error: powers greater than 100 are not supported for performance reasons.");
+				var2.show();
+				return null;
+			} 
+			
 			boolean var2isInt;
 			int pow = 0;
 			//Check that the power is integer
