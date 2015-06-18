@@ -325,6 +325,7 @@ public class Calculator {
 		time.addUnit("hour", "h", new BigDecimal("3600"));
 		time.addUnit("day", "d", new BigDecimal("86400"));
 		time.addUnit("week", "wk", new BigDecimal("604800"));
+		time.addUnit("month (30d)", "mo", new BigDecimal("2592000"));
 		time.addUnit("year", "a", new BigDecimal("31536000"));
 		
 		Measure electricCurrent = new Measure("electricCurrent", 0,0,0,1,0,0,0);
