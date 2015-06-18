@@ -176,30 +176,42 @@ public class Variable {
 	
 	/** Prints the useful information for this variable or constant. */
 	public void show() {
-		if (this.id == null) {
-			this.id = "var";
-		}
+		
 		if (this.isConstant) {
 			Calculator.inform("Constant: "+this.id+" - "+this.name);
 		}
-		else {
+		else if (this.id != null) {
 			Calculator.inform("Variable: "+this.id);
 		}
-		Calculator.inform("= ");
 		
 		int scale = this.value.scale();
 		if (scale > 50) {
 			scale = 80;
 		}
+		int resLess = this.value.compareTo(new BigDecimal("0.0001"));
+		int resGreater = this.value.compareTo(new BigDecimal("9999999"));
+		
 		if (this.isUnitless()) {
-			Calculator.inform(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString());
-		}else {
+			if (resLess == -1 || resGreater == 1) {
+				Calculator.inform(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString());
+			}
+			else {
+				Calculator.inform(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString());
+			}
+		}
+		else {
 			if (this.unit == null) {
 				Measure m = Measure.getMeasure(this.siBase[0], this.siBase[1], this.siBase[2], this.siBase[3], this.siBase[4], this.siBase[5], this.siBase[6]);
 				this.measure = m;
 				this.unit = m.baseUnit;
 			}
-			Calculator.inform(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.unit.measure.baseUnit.abr);
+			
+			if (resLess == -1 || resGreater == 1) {
+				Calculator.inform("="+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.unit.measure.baseUnit.abr);
+			}
+			else {
+				Calculator.inform("="+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.unit.measure.baseUnit.abr);
+			}
 		}
 	}
 

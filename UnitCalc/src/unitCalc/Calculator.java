@@ -21,7 +21,7 @@ public class Calculator {
 			resultArea.append(info+"\n");
 		}
 	}
-	
+
 	public static void setResultArea(JTextArea area) {
 		resultArea = area;
 	}
@@ -650,12 +650,20 @@ public class Calculator {
 		Variable.makeConstant(new BigDecimal("1.6749286E-27"), "m_n", mass.siBase, "invariant mass of a neutron");
 		Variable.makeConstant(new BigDecimal("3.3435860E-27"), "m_d", mass.siBase, "invariant mass of a deuteron");
 		Variable.makeConstant(new BigDecimal("6.644663E-27"), "m_alpha", mass.siBase, "invariant mass of a alpha particle");
-		
+
 		Variable.makeConstant(new BigDecimal("8.85419"), "epsilon_0", permittivity.siBase, "permittivity of vacuum");
 		Variable.makeConstant(new BigDecimal("1.25664"), "mu_0", permeability.siBase, "permeability of vacuum");
-		
+
 		Variable.makeConstant(new BigDecimal("6.6260755E-34"), "h", action.siBase, "Planck's constant");
-		
+
+
+		//Unitless
+		Measure unitless = new Measure("unitless", 0,0,0,0,0,0,0);
+		unitless.setBaseUnit("", "");
+		unitless.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
+		unitless.addUnit("radians", "rad", new BigDecimal("1"));
+
+
 	}
 	
 	public static void main(String[] args) {
