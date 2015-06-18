@@ -68,23 +68,68 @@ public class Measure {
 		
 		String newUnitName = "";
 		String newUnitNameEnding = "";
-		if (m>0) {newUnitName = newUnitName + "m"+Integer.toString(m);}
-		if (kg>0) {newUnitName = newUnitName + "kg"+Integer.toString(kg);}
-		if (s>0) {newUnitName = newUnitName + "s"+Integer.toString(s);}
-		if (A>0) {newUnitName = newUnitName + "A"+Integer.toString(A);}
-		if (K>0) {newUnitName = newUnitName + "K"+Integer.toString(K);}
-		if (Cd>0) {newUnitName = newUnitName + "Cd"+Integer.toString(Cd);}
-		if (mol>0) {newUnitName = newUnitName + "mol"+Integer.toString(mol);}
+		if (m>0) {
+			newUnitName = newUnitName + "m";
+			if (m>1) {newUnitName = newUnitName+Integer.toString(m);}
+		}
+		if (kg>0) {
+			newUnitName = newUnitName + "kg";
+			if (kg>1) {newUnitName = newUnitName+Integer.toString(kg);}
+		}
+		if (s>0) {
+			newUnitName = newUnitName + "s";
+			if (s>1) {newUnitName = newUnitName+Integer.toString(s);}
+		}
+		if (A>0) {
+			newUnitName = newUnitName + "A";
+			if (A>1) {newUnitName = newUnitName+Integer.toString(A);}
+		}
+		if (K>0) {
+			newUnitName = newUnitName + "K";
+			if (K>1) {newUnitName = newUnitName+Integer.toString(K);}
+		}
+		if (Cd>0) {
+			newUnitName = newUnitName + "Cd";
+			if (Cd>1) {newUnitName = newUnitName+Integer.toString(Cd);}
+		}
+		if (mol>0) {
+			newUnitName = newUnitName + "mol";
+			if (mol>1) {newUnitName = newUnitName+Integer.toString(mol);}
+		}
+		
 		if (newUnitName.equals("")) {
 			newUnitName = newUnitName +"1";
 		}
-		if (m<0) {newUnitNameEnding = newUnitNameEnding + "m"+Integer.toString(-m);}
-		if (kg<0) {newUnitNameEnding = newUnitNameEnding + "kg"+Integer.toString(-kg);}
-		if (s<0) {newUnitNameEnding = newUnitNameEnding + "s"+Integer.toString(-s);}
-		if (A<0) {newUnitNameEnding = newUnitNameEnding + "A"+Integer.toString(-A);}
-		if (K<0) {newUnitNameEnding = newUnitNameEnding + "K"+Integer.toString(-K);}
-		if (Cd<0) {newUnitNameEnding = newUnitNameEnding + "Cd"+Integer.toString(-Cd);}
-		if (mol<0) {newUnitNameEnding = newUnitNameEnding + "mol"+Integer.toString(-mol);}
+		
+		if (m<0) {
+			newUnitNameEnding = newUnitNameEnding + "m";
+			if (m<-1) {newUnitNameEnding = newUnitNameEnding+Integer.toString(-m);}
+		}
+		if (kg<0) {
+			newUnitNameEnding = newUnitNameEnding + "kg";
+			if (kg<-1) {newUnitNameEnding = newUnitNameEnding+Integer.toString(-kg);}
+		}
+		if (s<0) {
+			newUnitNameEnding = newUnitNameEnding + "s";
+			if (s<-1) {newUnitNameEnding = newUnitNameEnding+Integer.toString(-s);}
+		}
+		if (A<0) {
+			newUnitNameEnding = newUnitNameEnding + "A";
+			if (A<-1) {newUnitNameEnding = newUnitNameEnding+Integer.toString(-A);}
+		}
+		if (K<0) {
+			newUnitNameEnding = newUnitNameEnding + "K";
+			if (K<-1) {newUnitNameEnding = newUnitNameEnding+Integer.toString(-K);}
+		}
+		if (Cd<0) {
+			newUnitNameEnding = newUnitNameEnding + "Cd";
+			if (Cd<-1) {newUnitNameEnding = newUnitNameEnding+Integer.toString(-Cd);}
+		}
+		if (mol<0) {
+			newUnitNameEnding = newUnitNameEnding + "mol";
+			if (mol<-1) {newUnitNameEnding = newUnitNameEnding+Integer.toString(-mol);}
+		}
+		
 		if (!newUnitNameEnding.equals("")) {
 			newUnitName = newUnitName +"|"+newUnitNameEnding;
 		}
