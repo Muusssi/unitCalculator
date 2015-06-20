@@ -638,8 +638,11 @@ public class Calculator {
 		magneticFieldStrength.baseUnit.addSIScalers(1);
 		
 		Measure resistivity = new Measure("resistivity", 3,1,-3,-2,0,0,0);
-		resistivity.setBaseUnit("ohm meter", "ohmm");
+		resistivity.setBaseUnit("ohm meter", "½m");
 		resistivity.baseUnit.addSIScalers(1);
+		resistivity.addUnit("ohm meter", "ohmm", new BigDecimal("1"));
+		Unit.unitMap.get("ohmm").addSIScalers(1);
+		
 		
 		Measure resiporalTemperature = new Measure("resiporalTemperature", 0,0,0,0,-1,0,0);
 		resiporalTemperature.setBaseUnit("resiporal kelvin", "1/K");
@@ -663,8 +666,8 @@ public class Calculator {
 		Variable.makeConstant(new BigDecimal("8.314510"), "R", molarEntropy.siBase, "molar gas constant");
 		Variable.makeConstant(new BigDecimal("6.0221367E23"), "N_A", Measure.unitlessBase, "Avogadro's constant");
 		
-		Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "pi", Measure.unitlessBase, "pi");
 		Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "¹", Measure.unitlessBase, "pi");
+		Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "pi", Measure.unitlessBase, "pi");
 		Variable.makeConstant(new BigDecimal("2.71828182845904523536028747135266249775724709369995"), "e", Measure.unitlessBase, "Napier's constant");
 		
 		Variable.makeConstant(new BigDecimal("9.1093897E-31"), "m_e", mass.siBase, "invariant mass of an electron");
@@ -683,9 +686,9 @@ public class Calculator {
 		Measure unitless = new Measure("unitless", 0,0,0,0,0,0,0);
 		unitless.setBaseUnit("", "");
 		unitless.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
-		unitless.addUnit("degrees", "¡", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
+		// TODO some bug with this
+		//unitless.addUnit("pi", "¹", new BigDecimal("1").divide(Variable.varMap.get("pi").value, 100, RoundingMode.HALF_UP) );
 		unitless.addUnit("radians", "rad", new BigDecimal("1"));
-
 
 	}
 	

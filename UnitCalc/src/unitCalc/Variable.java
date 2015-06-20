@@ -187,6 +187,10 @@ public class Variable {
 	
 	/** Prints the useful information for this variable or constant. */
 	public void show(String unitAbr) {
+		if (this.unit == null) {
+			this.show();
+			return;
+		}
 		if (unitAbr == null) {
 			//Show all
 			this.show();
