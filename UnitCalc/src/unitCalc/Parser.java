@@ -87,6 +87,11 @@ public class Parser {
 			tok = new CalcToken(CalcToken.TokenType.EQUAL, null, i);
 			i++;
 		}
+		else if (c == ':') {
+			tok = new CalcToken(CalcToken.TokenType.TRANSL, null, i);
+			i++;
+		}
+		
 		// IDs
 		else if (Character.isLetter(c)) {
 			while (input.length() > i && (Character.isLetter(input.charAt(i)) || input.charAt(i) == '_' ||
@@ -153,6 +158,7 @@ public class Parser {
 		
 		else {
 			Calculator.inform("Syntax error: unsupported character");
+			System.out.println(c);
 			Calculator.inform(input);
 			String pointerLine = "";
 			for (int j=0; j<i; j++) {

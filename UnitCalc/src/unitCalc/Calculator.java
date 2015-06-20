@@ -44,6 +44,7 @@ public class Calculator {
 		if (lexing == null || lexing.size() == 0) {
 			return null;
 		}
+		
 		// id query
 		else if (lexing.size() == 1 && lexing.get(0).type == CalcToken.TokenType.ID) {
 			String id = lexing.get(0).id;
@@ -57,13 +58,8 @@ public class Calculator {
 			}
 			
 		}
-		/*
-		// translation
-		else if (lexing.size() == 2 && lexing.get(1).type == CalcToken.TokenType.ID) {
-			// TODO translation
-			System.out.println("Translations not implemented yet");
-		}
-		*/
+
+		
 		// Assignement
 		else if (lexing.size() > 2 && lexing.get(1).type == CalcToken.TokenType.EQUAL) {
 			if (lexing.get(0).type != CalcToken.TokenType.ID) {
@@ -301,7 +297,7 @@ public class Calculator {
 		length.addUnit("light-years", "ly", new BigDecimal("9.46055E15"));
 		length.addUnit("parsecs", "pc", new BigDecimal("3.085678E16"));
 		length.addUnit("Astronomical Units", "AU", new BigDecimal("1.495979E11"));
-		length.addUnit("ÔøΩngstroms", "ÔøΩ", new BigDecimal("1E-10"));
+		length.addUnit("Ångstroms", "Å", new BigDecimal("1E-10"));
 		
 		
 		Measure mass = new Measure("mass", 0,1,0,0,0,0,0);
@@ -335,6 +331,8 @@ public class Calculator {
 		Measure temperature = new Measure("temperature", 0,0,0,0,1,0,0);
 		temperature.setBaseUnit("kelvins", "K");
 		temperature.baseUnit.addSIScalers(1);
+		temperature.addUnit("celsius", "Cº", new BigDecimal("1"));
+		temperature.addUnit("farenheit", "Fº", new BigDecimal("1").divide(new BigDecimal("1.8"), 100, RoundingMode.HALF_UP));
 		
 		Measure luminousIntencity = new Measure("luminousIntencity", 0,0,0,0,0,1,0);
 		luminousIntencity.setBaseUnit("candelas", "Cd");
@@ -352,7 +350,6 @@ public class Calculator {
 		frequency.baseUnit.addSIScalers(1);
 		frequency.addUnit("revolutions per minute", "rpm", new BigDecimal("0.01666666666666666666666666666666666666666666666666666666666666667"));
 
-
 		
 		Measure force = new Measure("force", 1,1,-2,0,0,0,0);
 		force.setBaseUnit("newtons", "N");
@@ -368,7 +365,6 @@ public class Calculator {
 		Unit.unitMap.get("J|m3").addSIScalers(1);
 		pressure.addUnit("atmosferic pressure", "atm", new BigDecimal("101325"));
 		pressure.addUnit("torr", "torr", new BigDecimal("133.322"));
-		pressure.addUnit("atmospheres", "at", new BigDecimal("101.325"));
 		pressure.addUnit("millimeter of mercury", "mmHg", new BigDecimal("133.322"));
 		pressure.addUnit("pounds per square inch", "psi", new BigDecimal("6894.757"));
 		pressure.addUnit("pounds per square foot", "pft", new BigDecimal("47.88026"));
@@ -404,8 +400,10 @@ public class Calculator {
 		capacitance.baseUnit.addSIScalers(1);
 		
 		Measure resistance = new Measure("resistance", 2,1,-3,-2,0,0,0);
-		resistance.setBaseUnit("ohms", "ohm");
+		resistance.setBaseUnit("ohms", "Ω");
 		resistance.baseUnit.addSIScalers(1);
+		Unit.unitMap.get("Ω").addAlternativeAbr("ohm");
+		Unit.unitMap.get("ohm").addSIScalers(1);
 		
 		Measure conductance = new Measure("conductance", -2,-1,3,2,0,0,0);
 		conductance.setBaseUnit("siemens", "S");
@@ -415,6 +413,7 @@ public class Calculator {
 		magneticFlux.setBaseUnit("weber", "Wb");
 		magneticFlux.baseUnit.addSIScalers(1);
 		magneticFlux.addUnit("maxwell", "Mx", new BigDecimal("10E-9"));
+		Unit.unitMap.get("Mx").addSIScalers(1);
 		
 		Measure magneticFluxDensity = new Measure("magneticFluxDensity", 0,1,-2,-1,0,0,0);
 		magneticFluxDensity.setBaseUnit("teslas", "T");
@@ -443,9 +442,8 @@ public class Calculator {
 		area.addUnit("hectares", "ha", new BigDecimal("10000"));
 		area.addUnit("acres", "acre", new BigDecimal("4046.856"));
 		area.addUnit("barn", "b", new BigDecimal("1E-28"));
-		
-		
-		
+
+
 		Measure volume = new Measure("volume", 3,0,0,0,0,0,0);
 		volume.setBaseUnit("cubic meters", "m3");
 		volume.baseUnit.addSIScalers(3);
@@ -632,7 +630,6 @@ public class Calculator {
 		
 		
 		
-		
 		// Constants
 		Variable.makeConstant(new BigDecimal("2.99792458E8"), "c", velocity.siBase, "speed of light");
 		Variable.makeConstant(new BigDecimal("6.67259E-11"), "G", gravitationalConstantMeasure.siBase, "gravitational constant");
@@ -644,6 +641,7 @@ public class Calculator {
 		Variable.makeConstant(new BigDecimal("6.0221367E23"), "N_A", Measure.unitlessBase, "Avogadro's constant");
 		
 		Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "pi", Measure.unitlessBase, "pi");
+		Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "π", Measure.unitlessBase, "pi");
 		Variable.makeConstant(new BigDecimal("2.71828182845904523536028747135266249775724709369995"), "e", Measure.unitlessBase, "Napier's constant");
 		
 		Variable.makeConstant(new BigDecimal("9.1093897E-31"), "m_e", mass.siBase, "invariant mass of an electron");
@@ -662,6 +660,7 @@ public class Calculator {
 		Measure unitless = new Measure("unitless", 0,0,0,0,0,0,0);
 		unitless.setBaseUnit("", "");
 		unitless.addUnit("degrees", "º", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
+		unitless.addUnit("degrees", "°", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
 		unitless.addUnit("radians", "rad", new BigDecimal("1"));
 
 

@@ -6,7 +6,7 @@ public class CalcToken {
 		SUM, SUB, MUL, DIV, POW, UMIN,
 		BEGIN, END, EQUAL,
 		ID, NUM,
-		ERR,
+		ERR, TRANSL,
 	}
 	
 	public TokenType type;

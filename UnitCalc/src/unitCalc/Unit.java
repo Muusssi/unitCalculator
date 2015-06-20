@@ -49,11 +49,14 @@ public class Unit {
 								new BigDecimal("1E-12"), new BigDecimal("1E-15"), new BigDecimal("1E-18"), new BigDecimal("1E-21"), new BigDecimal("1E-24")
 								};
 		String[] preFixes = {"yotta ", "zetta ", "exa ", "peta ", "tera ", "giga ", "mega ", "kilo ", "hecto ", "deca ", "deci ", "centi ", "milli ", "micro ", "nano ", "pico ", "femto ", "atto ", "zepto ", "yocto "};
-		String[] abrPreFixes = {"Y", "Z", "E", "P", "T", "G", "M", "k", "h", "da", "d", "c", "m", "micro", "n", "p", "f", "a", "z", "y"};
+		String[] abrPreFixes = {"Y", "Z", "E", "P", "T", "G", "M", "k", "h", "da", "d", "c", "m", "µ", "n", "p", "f", "a", "z", "y"};
 		if (power == 1) {
 			for (int i=0; i<scalers.length; i++) {
 				if (!unitMap.containsKey(abrPreFixes[i]+this.abr)) {
-					new Unit(preFixes[i]+this.name, abrPreFixes[i]+this.abr, offsettMultiplier.multiply(scalers[i].pow(power)), this.measure, false, true);
+					Unit newUnit = new Unit(preFixes[i]+this.name, abrPreFixes[i]+this.abr, offsettMultiplier.multiply(scalers[i].pow(power)), this.measure, false, true);
+					if (preFixes[i].equals("micro ")) {
+						newUnit.addAlternativeAbr("micro"+this.abr);
+					}
 				}
 			}
 		}
