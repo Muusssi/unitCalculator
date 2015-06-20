@@ -40,13 +40,14 @@ public class Calculator {
 	public static Variable calculate(String calculation) {
 		lastCalculation = calculation;
 		LinkedList<CalcToken> lexing = Parser.lex(calculation);
+		
 		// Nothing to calculate
 		if (lexing == null || lexing.size() == 0) {
 			return null;
 		}
-		
+		int lexingLenth = lexing.size();
 		// id query
-		else if (lexing.size() == 1 && lexing.get(0).type == CalcToken.TokenType.ID) {
+		if (lexingLenth == 1 && lexing.get(0).type == CalcToken.TokenType.ID) {
 			String id = lexing.get(0).id;
 			if (Variable.varMap.containsKey(id)) {
 				Variable.varMap.get(id).show();
@@ -61,7 +62,7 @@ public class Calculator {
 
 		
 		// Assignement
-		else if (lexing.size() > 2 && lexing.get(1).type == CalcToken.TokenType.EQUAL) {
+		else if (lexingLenth > 2 && lexing.get(1).type == CalcToken.TokenType.EQUAL) {
 			if (lexing.get(0).type != CalcToken.TokenType.ID) {
 				inform("Error - illegal identifier: '"+lexing.get(0).id+"'");
 				return null;
@@ -78,6 +79,18 @@ public class Calculator {
 		}
 		//General expression
 		else {
+			boolean genTranslate = false;
+			String translateTo = null;
+			if (lexingLenth > 1 && lexing.getLast().type == CalcToken.TokenType.CONV) {
+				lexing.pollLast();
+				genTranslate = true; 
+			}
+			else if (lexingLenth > 2 && lexing.get(lexingLenth-2).type == CalcToken.TokenType.CONV) {
+				translateTo = lexing.pollLast().id;
+				lexing.pollLast();
+			}
+			
+			
 			LinkedList<Variable> postFix = toPostFix(lexing);
 			/*
 			System.out.println("--------");
@@ -95,7 +108,15 @@ public class Calculator {
 			*/
 			Variable ans = evaluate(postFix);
 			if (ans != null) {
-				ans.show();
+				if (genTranslate) {
+					ans.show(null);
+				}
+				else if (translateTo != null) {
+					ans.show(translateTo);
+				}
+				else {
+					ans.show();
+				}
 				ans = new Variable(ans.value, "ans", ans.siBase);
 			}
 		}
@@ -237,7 +258,9 @@ public class Calculator {
 			}
 			
 			else {
-				System.out.println("Unimplemented token in postfixing");
+				inform("Syntax error.");
+				showError(tok.index);
+				return null;
 			}
 			previousTok = tok;
 		}

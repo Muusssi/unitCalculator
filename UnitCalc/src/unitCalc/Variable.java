@@ -3,6 +3,7 @@ package unitCalc;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * This class represents a object that is used to build calculations.
@@ -183,6 +184,36 @@ public class Variable {
 	}
 	
 	
+	
+	/** Prints the useful information for this variable or constant. */
+	public void show(String unitAbr) {
+		if (unitAbr == null) {
+			//Show all
+			this.show();
+			Iterator<Unit> itr = this.measure.units.iterator();
+			while (itr.hasNext()) {
+				Unit convUnit = itr.next();
+				Calculator.inform("= "+this.value.divide(convUnit.baseRelation, 100, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toString()+" "+convUnit.abr);
+			}
+			return;
+		}
+		else if (!Unit.unitMap.containsKey(unitAbr)) {
+			Calculator.inform("Unable to convert: Unknown unit '"+unitAbr+"'");
+			return;
+		}
+		
+		Unit resultUnit = Unit.unitMap.get(unitAbr);
+		if (resultUnit.measure != this.measure) {
+			Calculator.inform("Unable to convert: measures of the units do not match.");
+			Calculator.inform(this.unit.abr+": "+this.measure.name+" -- "+resultUnit.abr+": "+resultUnit.measure.name);
+			return;
+		}
+		else {
+			Calculator.inform("= "+this.value.divide(resultUnit.baseRelation, 100, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toString()+" "+resultUnit.abr);
+			return;
+		}
+	}
+	
 	/** Prints the useful information for this variable or constant. */
 	public void show() {
 		
@@ -202,10 +233,10 @@ public class Variable {
 		
 		if (this.isUnitless()) {
 			if (resLess == -1 || resGreater == 1) {
-				Calculator.inform(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString());
+				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString());
 			}
 			else {
-				Calculator.inform(this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString());
+				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString());
 			}
 		}
 		else {
@@ -216,10 +247,10 @@ public class Variable {
 			}
 			
 			if (resLess == -1 || resGreater == 1) {
-				Calculator.inform("="+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.unit.measure.baseUnit.abr);
+				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.unit.measure.baseUnit.abr);
 			}
 			else {
-				Calculator.inform("="+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.unit.measure.baseUnit.abr);
+				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.unit.measure.baseUnit.abr);
 			}
 		}
 	}

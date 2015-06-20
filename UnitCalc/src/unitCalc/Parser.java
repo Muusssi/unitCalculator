@@ -88,7 +88,7 @@ public class Parser {
 			i++;
 		}
 		else if (c == ':') {
-			tok = new CalcToken(CalcToken.TokenType.TRANSL, null, i);
+			tok = new CalcToken(CalcToken.TokenType.CONV, null, i);
 			i++;
 		}
 		
