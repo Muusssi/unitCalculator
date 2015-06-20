@@ -155,7 +155,7 @@ public class Variable {
 				return new Variable(var1.value.divide(var2.value), null, ansSIbase);
 			}
 			catch (ArithmeticException ae) {
-				return new Variable(var1.value.divide(var2.value, 100, RoundingMode.HALF_UP), null, ansSIbase);
+				return new Variable(var1.value.divide(var2.value, 30, RoundingMode.HALF_UP), null, ansSIbase);
 			}
 		}
 		
@@ -197,7 +197,7 @@ public class Variable {
 			Iterator<Unit> itr = this.measure.units.iterator();
 			while (itr.hasNext()) {
 				Unit convUnit = itr.next();
-				Calculator.inform("= "+this.value.divide(convUnit.baseRelation, 100, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toString()+" "+convUnit.abr);
+				Calculator.inform("= "+this.value.divide(convUnit.baseRelation, 30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toString()+" "+convUnit.abr);
 			}
 			return;
 		}
@@ -213,7 +213,7 @@ public class Variable {
 			return;
 		}
 		else {
-			Calculator.inform("= "+this.value.divide(resultUnit.baseRelation, 100, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toString()+" "+resultUnit.abr);
+			Calculator.inform("= "+this.value.divide(resultUnit.baseRelation, 30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toString()+" "+resultUnit.abr);
 			return;
 		}
 	}
