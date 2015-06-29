@@ -39,8 +39,10 @@ public class Measure {
 		this.baseUnit = new Unit(name, abr, new BigDecimal("1"), this, true, false);
 	}
 	
-	public void addUnit(String name, String abr, BigDecimal baseRelation) {
-		this.units.add( new Unit(name, abr, baseRelation, this, false, false));
+	public Unit addUnit(String name, String abr, BigDecimal baseRelation) {
+		Unit newUnit = new Unit(name, abr, baseRelation, this, false, false);
+		this.units.add(newUnit);
+		return newUnit;
 	}
 	
 	

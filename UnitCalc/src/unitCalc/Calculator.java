@@ -12,6 +12,9 @@ public class Calculator {
 	
 	static String lastCalculation = null;
 	static JTextArea resultArea = null;
+	
+	static Variable pi;
+	static Variable e;
 
 	public static void inform(String info) {
 		if (resultArea == null) {
@@ -39,6 +42,10 @@ public class Calculator {
 	
 	public static Variable calculate(String calculation) {
 		lastCalculation = calculation;
+		if (calculation.equals("const")) {
+			Variable.listConstants();
+			return null;
+		}
 		LinkedList<CalcToken> lexing = Parser.lex(calculation);
 		
 		// Nothing to calculate
@@ -67,6 +74,10 @@ public class Calculator {
 				inform("Error - illegal identifier: '"+lexing.get(0).id+"'");
 				return null;
 			}
+			else if (Function.functionMap.containsKey(lexing.get(0).id)) {
+				inform("Error - identifier '"+lexing.get(0).id+"' reserved for a function");
+				return null;
+			}
 			String varName = lexing.poll().id;
 			lexing.poll();
 			LinkedList<Variable> postFix = toPostFix(lexing);
@@ -92,20 +103,22 @@ public class Calculator {
 			
 			
 			LinkedList<Variable> postFix = toPostFix(lexing);
+			
 			/*
 			System.out.println("--------");
 			Iterator<Variable> itr = postFix.iterator();
 			while (itr.hasNext()) {
 				Variable var = itr.next();
-				if (var.isOperation) {
-					System.out.println(var.op);
+				if (var.isOperation || var.isFunction) {
+					System.out.print(var.op);
 				}
 				else {
-					System.out.println(var.value.toString());
+					System.out.print(var.value.toString());
 				}
-				
+				System.out.println();
 			}
 			*/
+			
 			Variable ans = evaluate(postFix);
 			if (ans != null) {
 				if (genTranslate) {
@@ -149,6 +162,20 @@ public class Calculator {
 				else {
 					inform("Syntax error");
 					return null;
+				}
+			}
+			else if (var.isFunction) {
+				Function func = Function.functionMap.get(var.id);
+				if (stack.size() >= func.argNum) {
+					// TODO eval func
+					Variable[] fargs = new Variable[func.argNum];
+					for (int i=0; i<func.argNum; i++) {
+						fargs[i] = stack.pollLast();
+					}
+					stack.add(func.evaluate(fargs));
+				}
+				else {
+					Calculator.inform("Invalid arguments for function: "+func.name);
 				}
 			}
 			else {
@@ -204,6 +231,9 @@ public class Calculator {
 							expectingUnit = false;
 						}
 					}
+					else if (Function.functionMap.containsKey(tok.id)) {
+						stack.add(new Variable(CalcToken.TokenType.FUNC, tok.id));
+					}
 					else {
 						inform("Unknown identifier: '"+tok.id+"'");
 						showError(tok.index);
@@ -236,6 +266,9 @@ public class Calculator {
 						postFix.add(var);
 					}
 					else if (var.op == CalcToken.TokenType.BEGIN) {
+						if (!stack.isEmpty() && stack.getLast().isFunction) {
+							postFix.add(stack.pollLast());
+						}
 						break;
 					}
 					else {
@@ -313,8 +346,11 @@ public class Calculator {
 		length.setBaseUnit("meters", "m");
 		length.baseUnit.addSIScalers(1);
 		length.addUnit("inches", "in", new BigDecimal("0.0254"));
+		Unit unit = length.addUnit("thousandth of an inch", "thou", new BigDecimal("0.0000254"));
+		unit.addAlternativeAbr("mil");
 		length.addUnit("feet", "ft", new BigDecimal("0.3048"));
 		length.addUnit("yard", "yd", new BigDecimal("0.9144"));
+		length.addUnit("fathom", "fathom", new BigDecimal("1.8288"));
 		length.addUnit("miles", "mi", new BigDecimal("1609.344"));
 		length.addUnit("nautical miles", "nmi", new BigDecimal("1852"));
 		length.addUnit("light-years", "ly", new BigDecimal("9.46055E15"));
@@ -387,8 +423,8 @@ public class Calculator {
 		pressure.addUnit("joules per cubic meter", "J|m3", new BigDecimal("1"));
 		Unit.unitMap.get("J|m3").addSIScalers(1);
 		pressure.addUnit("atmosferic pressure", "atm", new BigDecimal("101325"));
-		pressure.addUnit("torr", "torr", new BigDecimal("133.322"));
-		pressure.addUnit("millimeter of mercury", "mmHg", new BigDecimal("133.322"));
+		pressure.addUnit("torr", "torr", new BigDecimal("101325").divide(new BigDecimal("760"), 100, BigDecimal.ROUND_UP));
+		pressure.addUnit("millimeter of mercury", "mmHg", new BigDecimal("133.322387415"));
 		pressure.addUnit("pounds per square inch", "psi", new BigDecimal("6894.757"));
 		pressure.addUnit("pounds per square foot", "pft", new BigDecimal("47.88026"));
 
@@ -408,6 +444,8 @@ public class Calculator {
 		Measure power = new Measure("power", 2,1,-3,0,0,0,0);
 		power.setBaseUnit("watts", "W");
 		power.baseUnit.addSIScalers(1);
+		unit = power.addUnit("joules per second", "J|s", new BigDecimal("1"));
+		unit.addSIScalers(1);
 		power.addUnit("horse power", "hp", new BigDecimal("735.5"));
 		
 		Measure electricCharge = new Measure("electricCharge", 0,0,1,1,0,0,0);
@@ -497,6 +535,7 @@ public class Calculator {
 		velocity.addUnit("mach", "M", new BigDecimal("331"));
 		velocity.addUnit("feet per second", "ft|s", new BigDecimal("0.3048"));
 		velocity.addUnit("feet per second", "ft|min", new BigDecimal("0.00508"));
+		velocity.addUnit("miles per hour", "mph", new BigDecimal("1609.344").divide(new BigDecimal("3600"), 100, RoundingMode.HALF_UP));
 
 		Measure pace = new Measure("pace", -1,0,1,0,0,0,0);
 		pace.setBaseUnit("seconds per meter", "s|m");
@@ -646,29 +685,29 @@ public class Calculator {
 		
 		Measure resiporalTemperature = new Measure("resiporalTemperature", 0,0,0,0,-1,0,0);
 		resiporalTemperature.setBaseUnit("resiporal kelvin", "1/K");
-		
-		
-		
+
+
+
 		//Still missing
 		Measure gravitationalConstantMeasure = new Measure("gravitationalConstantMeasure", 3,-1,-2,0,0,0,0);
 		gravitationalConstantMeasure.setBaseUnit("newton square meter per square kilogram", "Nm2|kg2");
-		
-		
-		
-		
+
+
+
+
 		// Constants
 		Variable.makeConstant(new BigDecimal("2.99792458E8"), "c", velocity.siBase, "speed of light");
 		Variable.makeConstant(new BigDecimal("6.67259E-11"), "G", gravitationalConstantMeasure.siBase, "gravitational constant");
 		Variable.makeConstant(new BigDecimal("9.80665"), "g", acceleration.siBase, "normal gravitational acceleration");
 		Variable.makeConstant(new BigDecimal("273.15"), "T_0", temperature.siBase, "normal temperature");
-		Variable.makeConstant(new BigDecimal("101325"), "p_0", pressure.siBase, "normal pressure");
+		Variable.makeConstant(new BigDecimal("101325"), "p_0", pressure.siBase, "standard atmospheric pressure");
 		Variable.makeConstant(new BigDecimal("22.41410E-3"), "V_m", molarVolume.siBase, "molar volume of ideal gas");
 		Variable.makeConstant(new BigDecimal("8.314510"), "R", molarEntropy.siBase, "molar gas constant");
 		Variable.makeConstant(new BigDecimal("6.0221367E23"), "N_A", Measure.unitlessBase, "Avogadro's constant");
 		
-		Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "¹", Measure.unitlessBase, "pi");
-		Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "pi", Measure.unitlessBase, "pi");
-		Variable.makeConstant(new BigDecimal("2.71828182845904523536028747135266249775724709369995"), "e", Measure.unitlessBase, "Napier's constant");
+		pi = Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "¹", Measure.unitlessBase, "pi");
+		pi.addAlternativeId("pi");
+		e = Variable.makeConstant(new BigDecimal("2.71828182845904523536028747135266249775724709369995"), "e", Measure.unitlessBase, "Napier's constant");
 		
 		Variable.makeConstant(new BigDecimal("9.1093897E-31"), "m_e", mass.siBase, "invariant mass of an electron");
 		Variable.makeConstant(new BigDecimal("1.6726231E-27"), "m_p", mass.siBase, "invariant mass of a proton");
@@ -677,7 +716,8 @@ public class Calculator {
 		Variable.makeConstant(new BigDecimal("6.644663E-27"), "m_alpha", mass.siBase, "invariant mass of a alpha particle");
 
 		Variable.makeConstant(new BigDecimal("8.85419"), "epsilon_0", permittivity.siBase, "permittivity of vacuum");
-		Variable.makeConstant(new BigDecimal("1.25664"), "mu_0", permeability.siBase, "permeability of vacuum");
+		Variable var = Variable.makeConstant(new BigDecimal("1.25664"), "µ_0", permeability.siBase, "permeability of vacuum");
+		var.addAlternativeId("mu_0");
 
 		Variable.makeConstant(new BigDecimal("6.6260755E-34"), "h", action.siBase, "Planck's constant");
 
@@ -686,14 +726,14 @@ public class Calculator {
 		Measure unitless = new Measure("unitless", 0,0,0,0,0,0,0);
 		unitless.setBaseUnit("", "");
 		unitless.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
-		// TODO some bug with this
-		//unitless.addUnit("pi", "¹", new BigDecimal("1").divide(Variable.varMap.get("pi").value, 100, RoundingMode.HALF_UP) );
+		unitless.addUnit("pi", "¹", Variable.varMap.get("pi").value);
 		unitless.addUnit("radians", "rad", new BigDecimal("1"));
 
 	}
 	
 	public static void main(String[] args) {
 		Calculator.initCalculator();
+		Function.initFunctionMap();
 		
 		// the main loop
 		Scanner reader = new Scanner(System.in);

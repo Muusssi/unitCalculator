@@ -29,6 +29,7 @@ public class Variable {
 	// For operators
 	CalcToken.TokenType op = null;
 	boolean isOperation = false;
+	boolean isFunction = false;
 	
 	/** For named variables with unit */
 	public Variable(BigDecimal value, String id, int[] siBase) {
@@ -57,6 +58,12 @@ public class Variable {
 		this.isOperation = isOperator;
 	}
 	
+	/** For functions */
+	public Variable(CalcToken.TokenType op, String funcName) {
+		this.op = op;
+		this.id = funcName;
+		this.isFunction = true;
+	}
 	
 	/** Checks if the variable is unitless. */
 	public boolean isUnitless() {
@@ -74,6 +81,11 @@ public class Variable {
 		constant.isConstant = true;
 		constant.name = name;
 		return constant;
+	}
+	
+	/**Adds an alternative id to the variableMap for the variable.*/
+	public void addAlternativeId(String altId) {
+		varMap.put(altId, this);
 	}
 	
 	/** Sets the given unit for the variable */
@@ -183,21 +195,40 @@ public class Variable {
 		return null;
 	}
 	
+	public static void listConstants() {
+		Iterator<String> itr = varMap.keySet().iterator();
+		Variable possibleConstant;
+		while (itr.hasNext()) {
+			possibleConstant = varMap.get(itr.next());
+			if (possibleConstant.isConstant) {
+				possibleConstant.show();
+			}
+			
+		}
+	}
 	
-	
-	/** Prints the useful information for this variable or constant. */
+	/** Prints the useful information for this variable or constant in given unit. If unit is null then show in all units of the relevant measure. */
 	public void show(String unitAbr) {
 		if (this.unit == null) {
-			this.show();
-			return;
+			this.unit = Unit.unitMap.get("");
+			this.measure = this.unit.measure;
 		}
+		int resLess;
+		int resGreater;
 		if (unitAbr == null) {
 			//Show all
 			this.show();
 			Iterator<Unit> itr = this.measure.units.iterator();
 			while (itr.hasNext()) {
 				Unit convUnit = itr.next();
-				Calculator.inform("= "+this.value.divide(convUnit.baseRelation, 30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toString()+" "+convUnit.abr);
+				resLess = this.value.compareTo(new BigDecimal("0.00001"));
+				resGreater = this.value.compareTo(new BigDecimal("9999999"));
+				if (resLess == -1 || resGreater == 1) {
+					Calculator.inform("= "+this.value.divide(convUnit.baseRelation, 30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+convUnit.abr);
+				}
+				else {
+					Calculator.inform("= "+this.value.divide(convUnit.baseRelation, 30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+convUnit.abr);
+				}
 			}
 			return;
 		}
@@ -230,9 +261,9 @@ public class Variable {
 		
 		int scale = this.value.scale();
 		if (scale > 50) {
-			scale = 80;
+			scale = 30;
 		}
-		int resLess = this.value.compareTo(new BigDecimal("0.0001"));
+		int resLess = this.value.compareTo(new BigDecimal("0.00001"));
 		int resGreater = this.value.compareTo(new BigDecimal("9999999"));
 		
 		if (this.isUnitless()) {
