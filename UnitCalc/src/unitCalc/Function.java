@@ -71,6 +71,7 @@ public class Function {
 		
 		
 		else {
+			Calculator.inform("Error: Unimplemented function");
 			return null;
 		}
 		

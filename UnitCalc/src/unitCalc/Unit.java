@@ -24,6 +24,20 @@ public class Unit {
 		this.measure = measure;
 		this.isBaseUnit = isBaseUnit;
 		unitMap.put(this.abr, this);
+		this.addNameToUnitMap();
+	}
+	
+	protected void addNameToUnitMap() {
+		String slugifiedName = "";
+		for (int i=0; i<this.name.length(); i++) {
+			if (this.name.charAt(i) == ' ') {
+				slugifiedName = slugifiedName + '_';
+			}
+			else {
+				slugifiedName = slugifiedName + this.name.charAt(i);
+			}
+		}
+		unitMap.put(slugifiedName, this);
 	}
 	
 	public void addAlternativeAbr(String altAbr) {
@@ -40,8 +54,12 @@ public class Unit {
 		}
 	}
 	
-	/** Adds the unit scalers of the metric system for this unit. */
 	public void addSIScalers(int power) {
+		this.addSIScalers(power, this.abr);
+	}
+	
+	/** Adds the unit scalers of the metric system for this unit. */
+	public void addSIScalers(int power, String abr) {
 		BigDecimal offsettMultiplier = this.baseRelation;
 		BigDecimal[] scalers = {new BigDecimal("1E24"), new BigDecimal("1E21"), new BigDecimal("1E18"), new BigDecimal("1E15"), new BigDecimal("1E12"),
 								new BigDecimal("1E9"), new BigDecimal("1E6"), new BigDecimal("1E3"), new BigDecimal("1E2"), new BigDecimal("10"),
@@ -52,10 +70,10 @@ public class Unit {
 		String[] abrPreFixes = {"Y", "Z", "E", "P", "T", "G", "M", "k", "h", "da", "d", "c", "m", "µ", "n", "p", "f", "a", "z", "y"};
 		if (power == 1) {
 			for (int i=0; i<scalers.length; i++) {
-				if (!unitMap.containsKey(abrPreFixes[i]+this.abr)) {
-					Unit newUnit = new Unit(preFixes[i]+this.name, abrPreFixes[i]+this.abr, offsettMultiplier.multiply(scalers[i].pow(power)), this.measure, false, true);
+				if (!unitMap.containsKey(abrPreFixes[i]+abr)) {
+					Unit newUnit = new Unit(preFixes[i]+this.name, abrPreFixes[i]+abr, offsettMultiplier.multiply(scalers[i].pow(power)), this.measure, false, true);
 					if (preFixes[i].equals("micro ")) {
-						newUnit.addAlternativeAbr("micro"+this.abr);
+						newUnit.addAlternativeAbr("micro"+abr);
 					}
 				}
 			}
