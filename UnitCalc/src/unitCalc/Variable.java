@@ -255,7 +255,7 @@ public class Variable {
 		if (this.isConstant) {
 			Calculator.inform("Constant: "+this.id+" - "+this.name);
 		}
-		else if (this.id != null) {
+		else if ((this.id != null) && (!this.id.equals("var"))) {
 			Calculator.inform("Variable: "+this.id);
 		}
 		
