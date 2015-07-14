@@ -35,7 +35,8 @@ public class CalcGUI extends JFrame {
 	public CalcGUI() {
 		
 		Calculator.initCalculator();
-		setTitle("Unit calculator 1.0");
+		Function.initFunctionMap();
+		setTitle("Unit calculator "+Calculator.version);
 		
 		JPanel middlePanel = new JPanel ();
 
