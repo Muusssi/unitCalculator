@@ -61,11 +61,19 @@ public class Calculator {
 			if (Variable.varMap.containsKey(id)) {
 				Variable.varMap.get(id).show();
 			}
+			
 			if (Unit.unitMap.containsKey(id)) {
 				Unit.unitMap.get(id).show();
-			} else if (!Variable.varMap.containsKey(id) && !Unit.unitMap.containsKey(id)) {
+			}
+			if (Function.functionMap.containsKey(id)) {
+				Function f = Function.functionMap.get(id);
+				// TODO function.show()
+				inform("Function: "+f.name+" - "+f.identifier+"(x)");
+			}
+			else if (!Variable.varMap.containsKey(id) && !Unit.unitMap.containsKey(id)) {
 				inform("Unknown identifier: '"+id+"'");
 			}
+			
 			
 		}
 
@@ -446,7 +454,7 @@ public class Calculator {
 		unit = energy.addUnit("newton meter", "Nm", new BigDecimal("1"));
 		unit.addSIScalers(1);
 		unit = energy.addUnit("foot pound", "ftlb", new BigDecimal("1.3558179483314"));
-		unit.addAlternativeAbr("ft-lb");
+		unit.addAlternativeAbr("ft_lb");
 		energy.addUnit("british termal unit", "Btu", new BigDecimal("1055.05585257348"));
 		energy.addUnit("Erg", "erg", new BigDecimal("0.0000001"));
 		
@@ -741,8 +749,10 @@ public class Calculator {
 		//Unitless
 		Measure unitless = new Measure("unitless", 0,0,0,0,0,0,0);
 		unitless.setBaseUnit("", "");
-		unitless.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
-		unitless.addUnit("pi", "¹", Variable.varMap.get("pi").value);
+		unit = unitless.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
+		unit.addAlternativeAbr("deg");
+		unit = unitless.addUnit("pi", "¹", Variable.varMap.get("pi").value);
+		unit.addAlternativeAbr("pi");
 		unitless.addUnit("radians", "rad", new BigDecimal("1"));
 
 	}
