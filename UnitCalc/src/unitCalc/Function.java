@@ -29,8 +29,31 @@ public class Function {
 				return new Variable(BigDecimal.valueOf(Math.sin(arguments[0].value.doubleValue())));
 			}
 		}
+		else if (this.identifier.equals("asin")) {
+			if ((arguments[0].value.compareTo(BigDecimal.ONE)) > 0 || (arguments[0].value.compareTo(new BigDecimal("-1")) < 0)) {
+				Calculator.inform("Math error: arc sin is only defined for values between -1 and 1");
+				return null;
+			}
+			else if (arguments[0].value.compareTo(BigDecimal.ONE) == 0) {
+				return new Variable(new BigDecimal("0.5").multiply(Calculator.pi.value));
+			}
+			else if (arguments[0].value.compareTo(new BigDecimal("-1")) == 0) {
+				return new Variable(new BigDecimal("-0.5").multiply(Calculator.pi.value));
+			}
+			else if (arguments[0].value.compareTo(BigDecimal.ZERO) == 0) {
+				return new Variable(BigDecimal.ZERO);
+			}
+			return new Variable(BigDecimal.valueOf(Math.asin(arguments[0].value.doubleValue())));
+		}
 		else if (this.identifier.equals("cos")) {
 			return new Variable(BigDecimal.valueOf(Math.cos(arguments[0].value.doubleValue())));
+		}
+		else if (this.identifier.equals("acos")) {
+			if ((arguments[0].value.compareTo(BigDecimal.ONE)) > 0 || (arguments[0].value.compareTo(new BigDecimal("-1")) < 0)) {
+				Calculator.inform("Math error: arc cos is only defined for values between -1 and 1");
+				return null;
+			}
+			return new Variable(BigDecimal.valueOf(Math.acos(arguments[0].value.doubleValue())));
 		}
 		else if (this.identifier.equals("tan")) {
 			if (arguments[0].value.remainder(Calculator.pi.value.multiply(new BigDecimal("0.5"))).compareTo(BigDecimal.ZERO) == 0) {
@@ -45,6 +68,9 @@ public class Function {
 			else {
 				return new Variable(BigDecimal.valueOf(Math.tan(arguments[0].value.doubleValue())));
 			}
+		}
+		else if (this.identifier.equals("atan")) {
+			return new Variable(BigDecimal.valueOf(Math.atan(arguments[0].value.doubleValue())));
 		}
 		
 		//Exponents
@@ -82,8 +108,11 @@ public class Function {
 	
 	public static void initFunctionMap() {
 		new Function("sin", "sin", 1);
+		new Function("arc sin", "asin", 1);
 		new Function("cos", "cos", 1);
+		new Function("arc cos", "acos", 1);
 		new Function("tan", "tan", 1);
+		new Function("arc tan", "atan", 1);
 		new Function("exponent", "exp", 1);
 		new Function("natural logarithm", "ln", 1);
 		new Function("logarithm with base 10", "lg", 1);

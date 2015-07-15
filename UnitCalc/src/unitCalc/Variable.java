@@ -160,6 +160,14 @@ public class Variable {
 			return new Variable(var1.value.multiply(var2.value), null, ansSIbase);
 		}
 		else if (op == CalcToken.TokenType.DIV) {
+			if (var2.value.compareTo(BigDecimal.ZERO) == 0) {
+				Calculator.inform("Math error: division by zero");
+				return null;
+			}
+			else if (var1.value.compareTo(BigDecimal.ZERO) == 0) {
+				return new Variable(BigDecimal.ZERO);
+			}
+			
 			for (int i=0; i<7; i++) {
 				ansSIbase[i] = var1.siBase[i] - var2.siBase[i];
 			}
