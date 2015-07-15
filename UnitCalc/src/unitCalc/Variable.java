@@ -229,9 +229,12 @@ public class Variable {
 			Iterator<Unit> itr = this.measure.units.iterator();
 			while (itr.hasNext()) {
 				Unit convUnit = itr.next();
-				resLess = this.value.compareTo(new BigDecimal("0.00001"));
+				resLess = this.value.compareTo(new BigDecimal("0.000000001"));
 				resGreater = this.value.compareTo(new BigDecimal("9999999"));
-				if (resLess == -1 || resGreater == 1) {
+				if (this.value.compareTo(BigDecimal.ZERO) == 0) {
+					Calculator.inform("= 0 "+convUnit.abr);
+				}
+				else if (resLess == -1 || resGreater == 1) {
 					Calculator.inform("= "+this.value.divide(convUnit.baseRelation, 30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+convUnit.abr);
 				}
 				else {

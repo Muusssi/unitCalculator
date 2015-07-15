@@ -10,7 +10,7 @@ import javax.swing.JTextArea;
 
 public class Calculator {
 	
-	static String version = "1.3.1";
+	static String version = "1.4";
 	
 	static String lastCalculation = null;
 	static JTextArea resultArea = null;
