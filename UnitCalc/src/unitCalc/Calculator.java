@@ -10,7 +10,7 @@ import javax.swing.JTextArea;
 
 public class Calculator {
 	
-	static String version = "1.4";
+	static String version = "1.5";
 	
 	static String lastCalculation = null;
 	static JTextArea resultArea = null;
@@ -159,7 +159,7 @@ public class Calculator {
 		while (!postFix.isEmpty()) {
 			var = postFix.poll();
 			if (var.isOperation) {
-				if (var.op == CalcToken.TokenType.UMIN && stack.size() >= 1) {
+				if ((var.op == CalcToken.TokenType.UMIN || var.op == CalcToken.TokenType.FACT) && stack.size() >= 1) {
 					// Unary minus
 					var1 = stack.pollLast();
 					stack.add(Variable.calc(var1, var.op, null));
@@ -320,7 +320,7 @@ public class Calculator {
 	
 	
 	static boolean evaluatesFirst(CalcToken.TokenType fromStack, CalcToken.TokenType nextOp) {
-		if (fromStack == CalcToken.TokenType.UMIN) {
+		if (fromStack == CalcToken.TokenType.UMIN || fromStack == CalcToken.TokenType.FACT) {
 			return true;
 		}
 		if (fromStack == CalcToken.TokenType.BEGIN || nextOp == CalcToken.TokenType.BEGIN) {

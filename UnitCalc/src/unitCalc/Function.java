@@ -20,6 +20,8 @@ public class Function {
 	
 	
 	public Variable evaluate(Variable[] arguments) {
+		// TODO functions: abs(), cbrt(), ...
+
 		// Trigonometric functions
 		if (this.identifier.equals("sin")) {
 			if (arguments[0].value.remainder(Calculator.pi.value).compareTo(BigDecimal.ZERO) == 0) {
@@ -95,12 +97,42 @@ public class Function {
 			return new Variable(BigDecimal.valueOf(Math.log10(arguments[0].value.doubleValue())));
 		}
 		
+		else if (this.identifier.equals("sqrt")) {
+			if (arguments[0].value.compareTo(BigDecimal.ZERO) < 0) {
+				Calculator.inform("Math error - Square root is only supported for non-negative values.");
+				return null;
+			}
+			return new Variable(BigDecimal.valueOf(Math.sqrt(arguments[0].value.doubleValue())));
+		}
+		
+		else if (this.identifier.equals("cbrt")) {
+			return new Variable(BigDecimal.valueOf(Math.cbrt(arguments[0].value.doubleValue())));
+		}
 		
 		else {
 			Calculator.inform("Error: Unimplemented function");
 			return null;
 		}
 		
+	}
+	
+	public static Variable factorial(Variable arg) {
+		// TODO factorial
+		if (arg.value.compareTo(BigDecimal.ZERO) <= 0 ) {
+			Calculator.inform("Math error: factorial is only defined for positive integers.");
+			arg.show();
+			return null;
+		}
+		
+		return new Variable(new BigDecimal("1"));
+	}
+	
+	
+	public static Variable calc_sin(Variable arg) {
+		// Exact from table
+		// or Using expansions until error<1e-100
+		//while ()
+		return null;
 	}
 	
 	
@@ -116,5 +148,7 @@ public class Function {
 		new Function("exponent", "exp", 1);
 		new Function("natural logarithm", "ln", 1);
 		new Function("logarithm with base 10", "lg", 1);
+		new Function("square root", "sqrt", 1);
+		new Function("cubic root", "cbrt", 1);
 	}
 }

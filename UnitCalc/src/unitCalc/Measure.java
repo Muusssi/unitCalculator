@@ -55,9 +55,6 @@ public class Measure {
 		}
 		// An uncommon measure -> generate unit and measure
 		else {
-			
-			//Integer.toString(m)+"|"+Integer.toString(kg)+"|"+Integer.toString(s)+"|"+Integer.toString(A)
-			//+"|"+Integer.toString(K)+"|"+Integer.toString(Cd)+"|"+Integer.toString(mol)
 			Measure newMeasure = generateNewMeasure(m,kg,s,A,K,Cd,mol);
 			return newMeasure;
 		}

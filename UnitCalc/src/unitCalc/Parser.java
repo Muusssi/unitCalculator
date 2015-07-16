@@ -75,6 +75,10 @@ public class Parser {
 			tok = new CalcToken(CalcToken.TokenType.POW, i);
 			i++;
 		}
+		else if (c == '!') {
+			tok = new CalcToken(CalcToken.TokenType.FACT, i);
+			i++;
+		}
 		else if (c == '(') {
 			tok = new CalcToken(CalcToken.TokenType.BEGIN, null, i);
 			i++;
@@ -91,6 +95,7 @@ public class Parser {
 			tok = new CalcToken(CalcToken.TokenType.CONV, null, i);
 			i++;
 		}
+		
 		
 		// IDs
 		else if (Character.isLetter(c)) {

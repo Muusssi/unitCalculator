@@ -109,6 +109,10 @@ public class Variable {
 			System.arraycopy(var1.siBase, 0, ansSIbase, 0, 7);
 			return new Variable(var1.value.negate(), null, ansSIbase);
 		}
+		
+		if (op == CalcToken.TokenType.FACT) {
+			return Function.factorial(var1);
+		}
 
 		if (op == CalcToken.TokenType.POW) {
 			
@@ -217,12 +221,23 @@ public class Variable {
 	
 	/** Prints the useful information for this variable or constant in given unit. If unit is null then show in all units of the relevant measure. */
 	public void show(String unitAbr) {
+		int resLess;
+		int resGreater;
 		if (this.unit == null) {
 			this.unit = Unit.unitMap.get("");
 			this.measure = this.unit.measure;
 		}
-		int resLess;
-		int resGreater;
+		if (this.measure.name.equals("time")) {
+			BigDecimal[] aAndRemainder = this.value.divideAndRemainder(new BigDecimal("31536000"));
+			BigDecimal[] dAndRemainder = aAndRemainder[1].divideAndRemainder(new BigDecimal("86400"));
+			BigDecimal[] hAndRemainder = dAndRemainder[1].divideAndRemainder(new BigDecimal("3600"));
+			BigDecimal[] minAndRemainder = hAndRemainder[1].divideAndRemainder(new BigDecimal("60"));
+			Calculator.inform("= "+aAndRemainder[0].toPlainString()+" years "
+					+dAndRemainder[0].toPlainString()+" days "
+					+hAndRemainder[0].toPlainString()+" hours "
+					+minAndRemainder[0].toPlainString()+" mins "
+					+minAndRemainder[1].toPlainString()+" s ");
+		}
 		if (unitAbr == null) {
 			//Show all
 			this.show();
