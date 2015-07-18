@@ -111,7 +111,6 @@ public class Calculator {
 				lexing.pollLast();
 			}
 			
-			
 			LinkedList<Variable> postFix = toPostFix(lexing);
 			
 			/*
@@ -131,6 +130,7 @@ public class Calculator {
 			
 			Variable ans = evaluate(postFix);
 			if (ans != null) {
+				ans = new Variable(ans.value, "ans", ans.siBase);
 				if (genTranslate) {
 					ans.show(null);
 				}
@@ -140,10 +140,9 @@ public class Calculator {
 				else {
 					ans.show();
 				}
-				ans = new Variable(ans.value, "ans", ans.siBase);
 			}
 		}
-		Calculator.inform("-------------");
+		Calculator.inform("-----------------------");
 		return null;
 	}
 	
@@ -193,7 +192,7 @@ public class Calculator {
 			}
 		}
 		if (stack.size() != 1) {
-			inform("Evaluation error");
+			inform("Syntax error");
 			return null;
 		}
 		else {
@@ -202,6 +201,12 @@ public class Calculator {
 		
 	}
 	
+	public static void print_list(LinkedList<Variable> list) {
+		Iterator<Variable> itr = list.iterator();
+		while (itr.hasNext()) {
+			System.out.println(itr.next().id);
+		}
+	}
 	
 	public static LinkedList<Variable> toPostFix(LinkedList<CalcToken> inFix) {
 		LinkedList<Variable> postFix = new LinkedList<Variable>();
@@ -214,11 +219,18 @@ public class Calculator {
 		CalcToken tok;
 		CalcToken previousTok = null;
 		boolean expectingUnit = false;
+		boolean expectingBegin = false;
+		boolean notExpectingIdOrNum = false;
 		while (itr.hasNext()) {
 			tok = itr.next();
 			
 			// ID
 			if (tok.type == CalcToken.TokenType.ID) {
+				if (notExpectingIdOrNum) {
+					inform("Syntax error");
+					showError(tok.index);
+					return null;
+				}
 				if (expectingUnit) {
 					if (Unit.unitMap.containsKey(tok.id)) {
 						Variable var = postFix.getLast();
@@ -242,7 +254,9 @@ public class Calculator {
 						}
 					}
 					else if (Function.functionMap.containsKey(tok.id)) {
-						stack.add(new Variable(CalcToken.TokenType.FUNC, tok.id));
+						Variable funcVar = new Variable(CalcToken.TokenType.FUNC, tok.id);
+						stack.add(funcVar);
+						expectingBegin = true;
 					}
 					else {
 						inform("Unknown identifier: '"+tok.id+"'");
@@ -253,23 +267,36 @@ public class Calculator {
 			}
 			// Number
 			else if (tok.type == CalcToken.TokenType.NUM) {
+				if (notExpectingIdOrNum) {
+					inform("Syntax error");
+					showError(tok.index);
+					return null;
+				}
 				BigDecimal a = new BigDecimal(tok.id);
 				postFix.add(new Variable(a));
 				expectingUnit = true;
 			}
 			// Starting parenthesis
 			else if (tok.type == CalcToken.TokenType.BEGIN) {
+				if (notExpectingIdOrNum) {
+					inform("Syntax error");
+					showError(tok.index);
+					return null;
+				}
 				expectingUnit = false;
+				expectingBegin = false;
 				stack.add(new Variable(CalcToken.TokenType.BEGIN, false));
 			}
 			// Ending parenthesis
 			else if (tok.type == CalcToken.TokenType.END) {
+				notExpectingIdOrNum = false;
 				expectingUnit = false;
 				Variable var;
 				while (true) {
 					var = stack.pollLast();
 					if (var == null) {
 						inform("Syntax error: Parenthesis do not match! Left missing.");
+						showError(tok.index);
 						return null;
 					}
 					if (var.isOperation) {
@@ -281,13 +308,32 @@ public class Calculator {
 						}
 						break;
 					}
+					else if (var.op == CalcToken.TokenType.FUNC) {
+						postFix.add(var);
+					}
 					else {
 						Calculator.inform("ERR");
 						return null;
 					}
 				}
 			}
+			else if (tok.type == CalcToken.TokenType.FSEP) {
+				notExpectingIdOrNum = false;
+				expectingUnit = false;
+				while (!stack.isEmpty() && stack.getLast().op != CalcToken.TokenType.BEGIN) {
+					postFix.add(stack.pollLast());
+				}
+				if (stack.isEmpty()) {
+					Calculator.inform("Syntax error: Unnecessary function separator ';'");
+					showError(tok.index);
+					return null;
+				}
+			}
 			else if (tok.operator) {
+				notExpectingIdOrNum = false;
+				if (tok.type == CalcToken.TokenType.FACT) {
+					notExpectingIdOrNum = true;
+				}
 				if (tok.type == CalcToken.TokenType.SUB && (previousTok == null || previousTok.operator || previousTok.type == CalcToken.TokenType.BEGIN)) {
 					stack.add(new Variable(CalcToken.TokenType.UMIN, true));
 				}
@@ -305,16 +351,22 @@ public class Calculator {
 				showError(tok.index);
 				return null;
 			}
+			if (expectingBegin && (!Function.functionMap.containsKey(tok.id) || !itr.hasNext())) {
+				Calculator.inform("Syntax error: Expecting () after function "+tok.id);
+				Calculator.showError(tok.index);
+				return null;
+			}
 			previousTok = tok;
 		}
 		while (!stack.isEmpty()) {
 			Variable var = stack.pollLast();
-			if (var.op == CalcToken.TokenType.END) {
+			if (var.op == CalcToken.TokenType.BEGIN) {
 				inform("Syntax error: Parenthesis do not match! Right missing.");
 				return null;
 			}
 			postFix.add(var);
 		}
+		//print_list(postFix);
 		return postFix;
 	}
 	
@@ -716,7 +768,9 @@ public class Calculator {
 		Measure gravitationalConstantMeasure = new Measure("gravitationalConstantMeasure", 3,-1,-2,0,0,0,0);
 		gravitationalConstantMeasure.setBaseUnit("newton square meter per square kilogram", "Nm2|kg2");
 
-
+		//Unitless
+		Measure unitless = new Measure("unitless", 0,0,0,0,0,0,0);
+		unitless.setBaseUnit("", "");
 
 
 		// Constants
@@ -746,9 +800,7 @@ public class Calculator {
 		Variable.makeConstant(new BigDecimal("6.6260755E-34"), "h", action.siBase, "Planck's constant");
 
 
-		//Unitless
-		Measure unitless = new Measure("unitless", 0,0,0,0,0,0,0);
-		unitless.setBaseUnit("", "");
+		// units for angle
 		unit = unitless.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
 		unit.addAlternativeAbr("deg");
 		unit = unitless.addUnit("pi", "¹", Variable.varMap.get("pi").value);

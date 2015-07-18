@@ -4,7 +4,7 @@ public class CalcToken {
 	
 	public enum TokenType {
 		SUM, SUB, MUL, DIV, POW, UMIN, FACT,
-		BEGIN, END, EQUAL,
+		BEGIN, END, EQUAL, FSEP,
 		ID, NUM, FUNC,
 		ERR, CONV,
 	}

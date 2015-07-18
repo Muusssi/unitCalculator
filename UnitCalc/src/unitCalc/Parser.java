@@ -24,6 +24,11 @@ public class Parser {
 			if (tok.type == CalcToken.TokenType.ERR) {
 				return null;
 			}
+			if (!tokens.isEmpty() && tok.type == CalcToken.TokenType.NUM
+					&& (tokens.getLast().type == CalcToken.TokenType.NUM || tokens.getLast().type == CalcToken.TokenType.ID) ) {
+				Calculator.inform("Syntax error");
+				return null;
+			}
 			tokens.add(tok);
 			tok = nextToken();
 		}
@@ -79,20 +84,24 @@ public class Parser {
 			tok = new CalcToken(CalcToken.TokenType.FACT, i);
 			i++;
 		}
+		else if (c == ';') {
+			tok = new CalcToken(CalcToken.TokenType.FSEP, i);
+			i++;
+		}
 		else if (c == '(') {
-			tok = new CalcToken(CalcToken.TokenType.BEGIN, null, i);
+			tok = new CalcToken(CalcToken.TokenType.BEGIN, i);
 			i++;
 		}
 		else if (c == ')') {
-			tok = new CalcToken(CalcToken.TokenType.END, null, i);
+			tok = new CalcToken(CalcToken.TokenType.END, i);
 			i++;
 		}
 		else if (c == '=') {
-			tok = new CalcToken(CalcToken.TokenType.EQUAL, null, i);
+			tok = new CalcToken(CalcToken.TokenType.EQUAL, i);
 			i++;
 		}
 		else if (c == ':') {
-			tok = new CalcToken(CalcToken.TokenType.CONV, null, i);
+			tok = new CalcToken(CalcToken.TokenType.CONV, i);
 			i++;
 		}
 		

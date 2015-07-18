@@ -36,6 +36,7 @@ public class Variable {
 		this.value = value;
 		this.id = id;
 		this.siBase = siBase;
+		this.measure = Measure.getMeasure(siBase[0], siBase[1], siBase[2], siBase[3], siBase[4], siBase[5], siBase[6]);
 		varMap.put(this.id, this);
 	}
 	
@@ -43,6 +44,7 @@ public class Variable {
 	public Variable(BigDecimal value, int[] siBase) {
 		this.value = value;
 		this.siBase = siBase;
+		this.measure = Measure.getMeasure(siBase[0], siBase[1], siBase[2], siBase[3], siBase[4], siBase[5], siBase[6]);
 	}
 	
 	/** For unitless variables */
@@ -128,18 +130,9 @@ public class Variable {
 				var2.show();
 				return null;
 			} 
-			
-			boolean var2isInt;
-			int pow = 0;
-			//Check that the power is integer
-			try {
-				pow = var2.value.toBigIntegerExact().intValue();
-		        var2isInt = true;
-		    } catch (ArithmeticException ex) {
-		    	var2isInt = false;
-		    }
 			 
-			if ( var2isInt) {
+			if ( var2.value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) {
+				int pow = var2.value.intValue();
 				if (pow < 0) {
 					Calculator.inform("Math error: negative powers are not supported.");
 					return null;
@@ -223,10 +216,6 @@ public class Variable {
 	public void show(String unitAbr) {
 		int resLess;
 		int resGreater;
-		if (this.unit == null) {
-			this.unit = Unit.unitMap.get("");
-			this.measure = this.unit.measure;
-		}
 		if (this.measure.name.equals("time")) {
 			BigDecimal[] aAndRemainder = this.value.divideAndRemainder(new BigDecimal("31536000"));
 			BigDecimal[] dAndRemainder = aAndRemainder[1].divideAndRemainder(new BigDecimal("86400"));

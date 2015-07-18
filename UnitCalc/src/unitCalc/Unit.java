@@ -68,13 +68,13 @@ public class Unit {
 								};
 		String[] preFixes = {"yotta ", "zetta ", "exa ", "peta ", "tera ", "giga ", "mega ", "kilo ", "hecto ", "deca ", "deci ", "centi ", "milli ", "micro ", "nano ", "pico ", "femto ", "atto ", "zepto ", "yocto "};
 		String[] abrPreFixes = {"Y", "Z", "E", "P", "T", "G", "M", "k", "h", "da", "d", "c", "m", "µ", "n", "p", "f", "a", "z", "y"};
-		if (power == 1) {
-			for (int i=0; i<scalers.length; i++) {
-				if (!unitMap.containsKey(abrPreFixes[i]+abr)) {
-					Unit newUnit = new Unit(preFixes[i]+this.name, abrPreFixes[i]+abr, offsettMultiplier.multiply(scalers[i].pow(power)), this.measure, false, true);
-					if (preFixes[i].equals("micro ")) {
-						newUnit.addAlternativeAbr("micro"+abr);
-					}
+
+		for (int i=0; i<scalers.length; i++) {
+			if (!unitMap.containsKey(abrPreFixes[i]+abr)) {
+				Unit newUnit = new Unit(preFixes[i]+this.name, abrPreFixes[i]+abr, offsettMultiplier.multiply(scalers[i].pow(power)), this.measure, false, true);
+				//System.out.println(newUnit.abr);
+				if (preFixes[i].equals("micro ")) {
+					newUnit.addAlternativeAbr("micro"+abr);
 				}
 			}
 		}

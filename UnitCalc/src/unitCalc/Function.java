@@ -9,11 +9,14 @@ public class Function {
 	
 	public String name;
 	public String identifier;
+	public String explanation;
 	public int argNum;
 	
-	public Function(String name, String identifier, int argNum) {
+	
+	public Function(String name, String identifier, int argNum, String explanation) {
 		this.name = name;
 		this.identifier = identifier;
+		this.explanation = explanation;
 		this.argNum = argNum;
 		functionMap.put(this.identifier, this);
 	}
@@ -117,18 +120,22 @@ public class Function {
 	}
 	
 	public static Variable factorial(Variable arg) {
-		// TODO factorial
-		if (arg.value.compareTo(BigDecimal.ZERO) <= 0 ) {
+		if (arg.value.compareTo(BigDecimal.ZERO) <= 0 || arg.value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) > 0) {
 			Calculator.inform("Math error: factorial is only defined for positive integers.");
 			arg.show();
 			return null;
 		}
-		
-		return new Variable(new BigDecimal("1"));
+		BigDecimal ans = new BigDecimal(1);
+		BigDecimal multiplier = new BigDecimal(1);
+		while (multiplier.compareTo(arg.value) < 0) {
+			multiplier = multiplier.add(BigDecimal.ONE);
+			ans = ans.multiply(multiplier);
+		}
+		return new Variable(ans);
 	}
 	
 	
-	public static Variable calc_sin(Variable arg) {
+	public static Variable fsin(Variable arg) {
 		// Exact from table
 		// or Using expansions until error<1e-100
 		//while ()
@@ -139,16 +146,17 @@ public class Function {
 	
 	
 	public static void initFunctionMap() {
-		new Function("sin", "sin", 1);
-		new Function("arc sin", "asin", 1);
-		new Function("cos", "cos", 1);
-		new Function("arc cos", "acos", 1);
-		new Function("tan", "tan", 1);
-		new Function("arc tan", "atan", 1);
-		new Function("exponent", "exp", 1);
-		new Function("natural logarithm", "ln", 1);
-		new Function("logarithm with base 10", "lg", 1);
-		new Function("square root", "sqrt", 1);
-		new Function("cubic root", "cbrt", 1);
+		new Function("sin", "sin", 1, "");
+		new Function("arc sin", "asin", 1, "");
+		new Function("cos", "cos", 1, "");
+		new Function("arc cos", "acos", 1, "");
+		new Function("tan", "tan", 1, "");
+		new Function("arc tan", "atan", 1, "");
+		new Function("exponent", "exp", 1, "");
+		new Function("natural logarithm", "ln", 1, "");
+		new Function("logarithm with base 10", "lg", 1, "");
+		new Function("square root", "sqrt", 1, "");
+		new Function("cubic root", "cbrt", 1, "");
+		//new Function("date meaning time since 1970-01-01 for comparing dates", "date", 3, "");
 	}
 }
