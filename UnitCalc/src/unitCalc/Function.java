@@ -119,7 +119,16 @@ public class Function {
 		
 	}
 	
+	public static Variable flg(Variable arg) {
+		return null;
+	}
+	
 	public static Variable factorial(Variable arg) {
+		if (!arg.isUnitless()) {
+			Calculator.inform("Math error: factorial is only defined for unitless variables.");
+			arg.show();
+			return null;
+		}
 		if (arg.value.compareTo(BigDecimal.ZERO) <= 0 || arg.value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) > 0) {
 			Calculator.inform("Math error: factorial is only defined for positive integers.");
 			arg.show();

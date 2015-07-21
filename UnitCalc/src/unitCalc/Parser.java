@@ -116,7 +116,7 @@ public class Parser {
 			}
 			tok = new CalcToken(CalcToken.TokenType.ID, current, i-current.length());
 		}
-		// Number dd*[.dd*][(E/e)[+-]dd*]
+		// Number dd*[.dd*][(E|e)[+|-]dd*]
 		else if (Character.isDigit(c)) {
 			while (input.length() > i && Character.isDigit(input.charAt(i)) ) {
 				c = input.charAt(i);
@@ -188,7 +188,6 @@ public class Parser {
 	
 	// For testing
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		LinkedList<CalcToken> tokens = lex("15m+22ft/2N*33.3m/s");
 		if (tokens != null) {
 			for (int i=0; i<tokens.size(); i++) {

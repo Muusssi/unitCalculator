@@ -26,6 +26,7 @@ public class CalcGUI extends JFrame {
 			String input = inputField.getText();
 			Calculator.inform(input);
 			previousInputs.addFirst(input);
+			previousInputIndex = -1;
 			Calculator.calculate(input);
 			inputField.setText("");
 		}

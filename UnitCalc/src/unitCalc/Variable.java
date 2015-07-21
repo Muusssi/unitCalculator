@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * This class represents a object that is used to build calculations.
@@ -14,12 +15,13 @@ import java.util.Iterator;
 public class Variable {
 	
 	static HashMap<String,Variable> varMap = new HashMap<String,Variable>();
+	static HashMap<String,Variable> constMap = new HashMap<String,Variable>();
 	
 	public String id = "var";
+	public LinkedList<String> alternativeIds = new LinkedList<String>();
 	public BigDecimal value = null;
 	
 	public int[] siBase = new int[7];
-	public Unit unit = null;
 	public Measure measure = null;
 	
 	//For constatnts
@@ -82,18 +84,19 @@ public class Variable {
 		Variable constant = new Variable(value, id, siBase);
 		constant.isConstant = true;
 		constant.name = name;
+		constMap.put(id, constant);
 		return constant;
 	}
 	
 	/**Adds an alternative id to the variableMap for the variable.*/
 	public void addAlternativeId(String altId) {
 		varMap.put(altId, this);
+		this.alternativeIds.add(altId);
 	}
 	
-	/** Sets the given unit for the variable */
+	/** Sets the given unit for a unitless variable */
 	public void setUnit(Unit unit) {
 		this.value = this.value.multiply(unit.baseRelation);
-		this.unit = unit.measure.baseUnit;
 		this.measure = unit.measure;
 		this.siBase = new int[7];
 		System.arraycopy(unit.measure.siBase, 0, this.siBase, 0, 7);
@@ -116,9 +119,7 @@ public class Variable {
 			return Function.factorial(var1);
 		}
 
-		if (op == CalcToken.TokenType.POW) {
-			
-			
+		if (op == CalcToken.TokenType.POW) { // TODO non integer (& negative) powers
 			if (!var2.isUnitless()) {
 				Calculator.inform("Math error: powers must be unitless non-negative integers.");
 				var2.show();
@@ -172,7 +173,7 @@ public class Variable {
 				return new Variable(var1.value.divide(var2.value), null, ansSIbase);
 			}
 			catch (ArithmeticException ae) {
-				return new Variable(var1.value.divide(var2.value, 30, RoundingMode.HALF_UP), null, ansSIbase);
+				return new Variable(var1.value.divide(var2.value, 100, RoundingMode.HALF_UP), null, ansSIbase);
 			}
 		}
 		
@@ -255,7 +256,7 @@ public class Variable {
 		Unit resultUnit = Unit.unitMap.get(unitAbr);
 		if (resultUnit.measure != this.measure) {
 			Calculator.inform("Unable to convert: measures of the units do not match.");
-			Calculator.inform(this.unit.abr+": "+this.measure.name+" -- "+resultUnit.abr+": "+resultUnit.measure.name);
+			Calculator.inform(this.measure.baseUnit.abr+": "+this.measure.name+" -- "+resultUnit.abr+": "+resultUnit.measure.name);
 			return;
 		}
 		else {
@@ -290,17 +291,19 @@ public class Variable {
 			}
 		}
 		else {
-			if (this.unit == null) {
+			/*
+			if (this.measure == null) {
 				Measure m = Measure.getMeasure(this.siBase[0], this.siBase[1], this.siBase[2], this.siBase[3], this.siBase[4], this.siBase[5], this.siBase[6]);
 				this.measure = m;
 				this.unit = m.baseUnit;
 			}
+			*/
 			
 			if (resLess == -1 || resGreater == 1) {
-				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.unit.measure.baseUnit.abr);
+				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.measure.baseUnit.abr);
 			}
 			else {
-				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.unit.measure.baseUnit.abr);
+				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.measure.baseUnit.abr);
 			}
 		}
 	}

@@ -17,6 +17,7 @@ public class Calculator {
 	
 	static Variable pi;
 	static Variable e;
+	static Measure unitlesMeasure;
 
 	public static void inform(String info) {
 		if (resultArea == null) {
@@ -259,7 +260,12 @@ public class Calculator {
 						expectingBegin = true;
 					}
 					else {
-						inform("Unknown identifier: '"+tok.id+"'");
+						if (Unit.unitMap.containsKey(tok.id)) {
+							inform("Unable to set unit: '"+tok.id+"'");
+						}
+						else {
+							inform("Unknown identifier: '"+tok.id+"'");
+						}
 						showError(tok.index);
 						return null;
 					}
@@ -769,13 +775,13 @@ public class Calculator {
 		gravitationalConstantMeasure.setBaseUnit("newton square meter per square kilogram", "Nm2|kg2");
 
 		//Unitless
-		Measure unitless = new Measure("unitless", 0,0,0,0,0,0,0);
-		unitless.setBaseUnit("", "");
+		unitlesMeasure = new Measure("unitless", 0,0,0,0,0,0,0);
+		unitlesMeasure.setBaseUnit("", "");
 
 
 		// Constants
 		Variable.makeConstant(new BigDecimal("2.99792458E8"), "c", velocity.siBase, "speed of light");
-		Variable.makeConstant(new BigDecimal("6.67259E-11"), "G", gravitationalConstantMeasure.siBase, "gravitational constant");
+		Variable.makeConstant(new BigDecimal("6.67259E-11"), "G", gravitationalConstantMeasure.siBase, "Newtonian constant of gravitation");
 		Variable.makeConstant(new BigDecimal("9.80665"), "g", acceleration.siBase, "normal gravitational acceleration");
 		Variable.makeConstant(new BigDecimal("273.15"), "T_0", temperature.siBase, "normal temperature");
 		Variable.makeConstant(new BigDecimal("101325"), "p_0", pressure.siBase, "standard atmospheric pressure");
@@ -799,14 +805,24 @@ public class Calculator {
 
 		Variable.makeConstant(new BigDecimal("6.6260755E-34"), "h", action.siBase, "Planck's constant");
 
-
+		// Note frequencys:
+		Variable.makeConstant(new BigDecimal("16.35"), "C0", frequency.siBase, "frequency of note C0");
+		Variable consti = Variable.makeConstant(new BigDecimal("17.32"), "C#0", frequency.siBase, "frequency of note C#0");
+		consti.addAlternativeId("Db0");
+		Variable.makeConstant(new BigDecimal("18.35"), "D0", frequency.siBase, "frequency of note D0");
+		consti = Variable.makeConstant(new BigDecimal("19.45"), "D#0", frequency.siBase, "frequency of note D#0");
+		consti.addAlternativeId("Eb0");
+		
+		
+		
 		// units for angle
-		unit = unitless.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
+		
+		unit = unitlesMeasure.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
 		unit.addAlternativeAbr("deg");
-		unit = unitless.addUnit("pi", "¹", Variable.varMap.get("pi").value);
+		unit = unitlesMeasure.addUnit("pi", "¹", Variable.varMap.get("pi").value);
 		unit.addAlternativeAbr("pi");
-		unitless.addUnit("radians", "rad", new BigDecimal("1"));
-
+		unitlesMeasure.addUnit("radians", "rad", new BigDecimal("1"));
+		
 	}
 	
 	public static void main(String[] args) {
