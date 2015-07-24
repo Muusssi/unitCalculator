@@ -19,13 +19,14 @@ public class Calculator {
 	static Variable e;
 	static Measure unitlesMeasure;
 
-	public static void inform(String info) {
+	public static String inform(String info) {
 		if (resultArea == null) {
 			System.out.println(info);
 		}
 		else {
 			resultArea.append(info+"\n");
 		}
+		return null;
 	}
 
 	public static void setResultArea(JTextArea area) {
@@ -45,6 +46,7 @@ public class Calculator {
 	
 	public static Variable calculate(String calculation) {
 		lastCalculation = calculation;
+		Variable ans = null;
 		if (calculation.equals("const")) {
 			Variable.listConstants();
 			return null;
@@ -92,7 +94,7 @@ public class Calculator {
 			String varName = lexing.poll().id;
 			lexing.poll();
 			LinkedList<Variable> postFix = toPostFix(lexing);
-			Variable ans = evaluate(postFix);
+			ans = evaluate(postFix);
 			if (ans != null) {
 				ans = new Variable(ans.value, varName, ans.siBase);
 				ans.show();
@@ -129,9 +131,8 @@ public class Calculator {
 			}
 			*/
 			
-			Variable ans = evaluate(postFix);
+			ans = evaluate(postFix);
 			if (ans != null) {
-				ans = new Variable(ans.value, "ans", ans.siBase);
 				if (genTranslate) {
 					ans.show(null);
 				}
@@ -141,10 +142,11 @@ public class Calculator {
 				else {
 					ans.show();
 				}
+				ans = new Variable(ans.value, "ans", ans.siBase);
 			}
 		}
 		Calculator.inform("-----------------------");
-		return null;
+		return ans;
 	}
 	
 	/** Evaluates an expression which should be in postfix notation */
@@ -261,7 +263,21 @@ public class Calculator {
 					}
 					else {
 						if (Unit.unitMap.containsKey(tok.id)) {
-							inform("Unable to set unit: '"+tok.id+"'");
+							if (previousTok != null) {
+								if (Variable.varMap.containsKey(previousTok.id)) {
+									inform("Error: Unable to set unit '"+tok.id+"' because "+previousTok.id+" already has a unit.");
+									return null;
+								}
+								else {
+									inform("Error: Unable to set unit '"+tok.id+"' because "+previousTok.id+" already has a unit: "
+												+Variable.varMap.get(previousTok.id).measure.baseUnit.abr);
+									return null;
+								}
+							}
+							else {
+								inform("Error: Unable to set unit "+tok.id);
+								return null;
+							}
 						}
 						else {
 							inform("Unknown identifier: '"+tok.id+"'");
@@ -823,11 +839,12 @@ public class Calculator {
 		unit.addAlternativeAbr("pi");
 		unitlesMeasure.addUnit("radians", "rad", new BigDecimal("1"));
 		
+		
+		Function.initFunctionMap();
 	}
 	
 	public static void main(String[] args) {
 		Calculator.initCalculator();
-		Function.initFunctionMap();
 		
 		// the main loop
 		Scanner reader = new Scanner(System.in);
@@ -838,7 +855,7 @@ public class Calculator {
 			calculation = reader.nextLine();
 			answer = calculate(calculation);
 			if (answer != null) {
-				answer.show();
+				//answer.show();
 			}
 		}
 		

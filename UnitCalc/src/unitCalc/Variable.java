@@ -115,24 +115,22 @@ public class Variable {
 			return new Variable(var1.value.negate(), null, ansSIbase);
 		}
 		
-		if (op == CalcToken.TokenType.FACT) {
+		else if (op == CalcToken.TokenType.FACT) {
 			return Function.factorial(var1);
 		}
 
-		if (op == CalcToken.TokenType.POW) { // TODO non integer (& negative) powers
+		else if (op == CalcToken.TokenType.POW) { // TODO non integer (& negative) powers
 			if (!var2.isUnitless()) {
 				Calculator.inform("Math error: powers must be unitless non-negative integers.");
 				var2.show();
 				return null;
 			}
-			int powOffLimit = var2.value.compareTo(new BigDecimal("100"));
-			if (powOffLimit == 1) {
+			else if (var2.value.compareTo(new BigDecimal("100")) >= 0) {
 				Calculator.inform("Math error: powers greater than 100 are not supported for performance reasons.");
 				var2.show();
 				return null;
 			} 
-			 
-			if ( var2.value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) {
+			else if ( var2.value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) {
 				int pow = var2.value.intValue();
 				if (pow < 0) {
 					Calculator.inform("Math error: negative powers are not supported.");
@@ -147,11 +145,9 @@ public class Variable {
 				Calculator.inform("Math error: only non-negative integer powers are supported.");
 				return null;
 			}
-				
-			
 		}
 		
-		if (op == CalcToken.TokenType.MUL) {
+		else if (op == CalcToken.TokenType.MUL) {
 			for (int i=0; i<7; i++) {
 				ansSIbase[i] = var1.siBase[i] + var2.siBase[i];
 			}
@@ -176,28 +172,39 @@ public class Variable {
 				return new Variable(var1.value.divide(var2.value, 100, RoundingMode.HALF_UP), null, ansSIbase);
 			}
 		}
-		
-		boolean sameBase = true;
-		for (int i=0; i<7; i++) {
-			if (var1.siBase[i] != var2.siBase[i]) {
-				sameBase = false;
-				break;
+		else if (op == CalcToken.TokenType.SUM || op == CalcToken.TokenType.SUB) {
+			boolean sameBase = true;
+			for (int i=0; i<7; i++) {
+				if (var1.siBase[i] != var2.siBase[i]) {
+					sameBase = false;
+					break;
+				}
+			}
+			if (sameBase) {
+				System.arraycopy(var1.siBase, 0, ansSIbase, 0, 7);
+				if (op == CalcToken.TokenType.SUM) {
+					return new Variable(var1.value.add(var2.value), null, ansSIbase);
+				}
+				else if (op == CalcToken.TokenType.SUB) {
+					return new Variable(var1.value.subtract(var2.value), null, ansSIbase);
+				}
+			}
+			else {
+				Calculator.inform("Error: Can't subtract or add variables that have different measures.");
+				var1.show();
+				var2.show();
+				return null;
 			}
 		}
-		if (sameBase) {
-			System.arraycopy(var1.siBase, 0, ansSIbase, 0, 7);
-			if (op == CalcToken.TokenType.SUM) {
-				return new Variable(var1.value.add(var2.value), null, ansSIbase);
-			}
-			else if (op == CalcToken.TokenType.SUB) {
-				return new Variable(var1.value.subtract(var2.value), null, ansSIbase);
-			}
+		else if (op == CalcToken.TokenType.EQUAL) {
+			Calculator.inform("Error: Illegal variable assignment.");
+			return null;
 		}
 		else {
-			Calculator.inform("Error: Can't subtract or add variables that have different measures.");
-			var1.show();
-			var2.show();
+			Calculator.inform("Error: Something weird happened with this calculation.\n Please inform the developer if you can see this.");
+			return null;
 		}
+		Calculator.inform("Error: Something really weird happened with this calculation.\n Please inform the developer if you can see this message.");
 		return null;
 	}
 	
@@ -291,14 +298,6 @@ public class Variable {
 			}
 		}
 		else {
-			/*
-			if (this.measure == null) {
-				Measure m = Measure.getMeasure(this.siBase[0], this.siBase[1], this.siBase[2], this.siBase[3], this.siBase[4], this.siBase[5], this.siBase[6]);
-				this.measure = m;
-				this.unit = m.baseUnit;
-			}
-			*/
-			
 			if (resLess == -1 || resGreater == 1) {
 				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toEngineeringString()+" "+this.measure.baseUnit.abr);
 			}
