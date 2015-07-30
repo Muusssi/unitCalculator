@@ -476,8 +476,10 @@ public class Calculator {
 		Measure temperature = new Measure("temperature", 0,0,0,0,1,0,0);
 		temperature.setBaseUnit("kelvin", "K");
 		temperature.baseUnit.addSIScalers(1);
-		temperature.addUnit("celsius", "C¼", new BigDecimal("1"));
-		temperature.addUnit("farenheit", "F¼", new BigDecimal("1").divide(new BigDecimal("1.8"), 100, RoundingMode.HALF_UP));
+		unit = temperature.addUnit("celsius", "C¼", new BigDecimal("1"));
+		unit.addAlternativeAbr("celsius");
+		unit = temperature.addUnit("farenheit", "F¼", new BigDecimal("1").divide(new BigDecimal("1.8"), 100, RoundingMode.HALF_UP));
+		unit.addAlternativeAbr("farenheit");
 		
 		Measure luminousIntencity = new Measure("luminousIntencity", 0,0,0,0,0,1,0);
 		luminousIntencity.setBaseUnit("candela", "Cd");
@@ -493,7 +495,8 @@ public class Calculator {
 		Measure frequency = new Measure("frequency", 0,0,-1,0,0,0,0);
 		frequency.setBaseUnit("hertz", "Hz");
 		frequency.baseUnit.addSIScalers(1);
-		frequency.addUnit("revolution per minute", "rpm", new BigDecimal("0.01666666666666666666666666666666666666666666666666666666666666667"));
+		unit = frequency.addUnit("revolution per minute", "rpm", new BigDecimal("0.01666666666666666666666666666666666666666666666666666666666666667"));
+		unit.addAlternativeAbr("bpm");
 
 		
 		Measure force = new Measure("force", 1,1,-2,0,0,0,0);

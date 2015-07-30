@@ -2,10 +2,7 @@ package tests;
 
 import static org.junit.Assert.*;
 
-import java.awt.TextArea;
 import java.math.BigDecimal;
-
-import javax.swing.JTextArea;
 
 import org.junit.After;
 import org.junit.Before;
@@ -43,10 +40,15 @@ public class CalculatorCalculateTests {
 		assertCalculation("1+2*2", "5");
 		assertCalculation("2*2+1", "5");
 		assertCalculation("(2*2+1)", "5");
+		
+		assertCalculation("4!", "24");
+		assertCalculation("1!", "1");
+		assertCalculation("2^3", "8");
+		
 	}
 	
 	@Test
-	public void basic_functions_shuold_work() {
+	public void basic_functions_should_work() {
 		assertCalculation("sin(0)", "0");
 		assertCalculation("sin(pi)", "0");
 		assertCalculation("sin(0.5*pi)", "1");
@@ -55,6 +57,7 @@ public class CalculatorCalculateTests {
 		assertCalculation("cos(0)", "1");
 		assertCalculation("cos(pi)", "-1");
 		//assertCalculation("cos(0.5*pi)", "0"); TODO needs fixing
+		
 	}
 
 }

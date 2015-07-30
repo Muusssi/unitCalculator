@@ -83,5 +83,6 @@ public class Function {
 		new Function("square root", "sqrt", 1, "", funcEvaluators.new SqrtEvaluator());
 		new Function("cubic root", "cbrt", 1, "", funcEvaluators.new CbrtEvaluator());
 		new Function("date", "date", 3, "date returns time since 1970-01-01 for comparing dates", null);
+		//new Function("time", "time", 3, "date returns time since 1970-01-01 for comparing dates", null);
 	}
 }
