@@ -62,11 +62,9 @@ public class Function {
 			multiplier = multiplier.add(BigDecimal.ONE);
 			ans = ans.multiply(multiplier);
 		}
-		return new Variable(ans);
+		return new Variable(ans, null, null);
 	}
-	
 
-	
 	
 	
 	public static void initFunctionMap() {

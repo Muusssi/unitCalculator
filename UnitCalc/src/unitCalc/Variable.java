@@ -8,7 +8,7 @@ import java.util.LinkedList;
 
 /**
  * This class represents a object that is used to build calculations.
- * It can be a variable, constant, operation, 
+ * It can be a variable, constant, operation, ...
  * @author Tommi Oinonen
  *
  */
@@ -20,6 +20,11 @@ public class Variable {
 	public String id = "var";
 	public LinkedList<String> alternativeIds = new LinkedList<String>();
 	public BigDecimal value = null;
+	
+	public BigDecimal accumulatedMaxValue = null;
+	public BigDecimal accumulatedMinValue = null;
+	
+	
 	
 	public int[] siBase = new int[7];
 	public Measure measure = null;
@@ -33,27 +38,25 @@ public class Variable {
 	boolean isOperation = false;
 	boolean isFunction = false;
 	
-	/** For named variables with unit */
 	public Variable(BigDecimal value, String id, int[] siBase) {
 		this.value = value;
-		this.id = id;
-		this.siBase = siBase;
-		this.measure = Measure.getMeasure(siBase[0], siBase[1], siBase[2], siBase[3], siBase[4], siBase[5], siBase[6]);
-		varMap.put(this.id, this);
+		this.accumulatedMaxValue = this.value;
+		this.accumulatedMinValue = this.value;
+		if (siBase == null) {
+			this.siBase = new int[7];
+			this.measure = Calculator.unitlesMeasure;
+		}
+		else {
+			this.siBase = siBase;
+			this.measure = Measure.getMeasure(siBase[0], siBase[1], siBase[2], siBase[3], siBase[4], siBase[5], siBase[6]);
+		}
+		if (id != null) {
+			this.id = id;
+			this.measure = Measure.getMeasure(siBase[0], siBase[1], siBase[2], siBase[3], siBase[4], siBase[5], siBase[6]);
+			varMap.put(this.id, this);
+		}
 	}
 	
-	/** For unnamed variables */
-	public Variable(BigDecimal value, int[] siBase) {
-		this.value = value;
-		this.siBase = siBase;
-		this.measure = Measure.getMeasure(siBase[0], siBase[1], siBase[2], siBase[3], siBase[4], siBase[5], siBase[6]);
-	}
-	
-	/** For unitless variables */
-	public Variable(BigDecimal value) {
-		this.value = value;
-		this.siBase = new int[7];
-	}
 	
 	/** For operators and parenthesis */
 	public Variable(CalcToken.TokenType op, boolean isOperator) {
@@ -79,9 +82,38 @@ public class Variable {
 		return true;
 	}
 	
+	private int getNumberOfDecimalPlaces() {
+	    String string = this.value.toPlainString();
+	    int index = string.indexOf(".");
+	    return index < 0 ? 0 : string.length() - index - 1;
+	}
+	
+	public void setMeasurementError(BigDecimal measurementError) {
+		if (measurementError == null) {
+			int decimalPlaces = this.getNumberOfDecimalPlaces();
+			int scale = this.value.scale();
+			//System.out.println(this.value.toPlainString()+" "+scale);
+			if (decimalPlaces != 0) {
+				this.accumulatedMaxValue = this.value.add(new BigDecimal("5e-"+(decimalPlaces+1)));
+				this.accumulatedMinValue = this.value.subtract(new BigDecimal("5e-"+(decimalPlaces+1)));
+			}
+			else {
+				this.accumulatedMaxValue = this.value;
+				this.accumulatedMinValue = this.value;
+			}
+		}
+		else {
+			this.accumulatedMaxValue = this.value.add(measurementError);
+			this.accumulatedMinValue = this.value.subtract(measurementError);
+		}
+	}
+	
 	/** For constants */
-	public static Variable makeConstant(BigDecimal value, String id, int[] siBase, String name) {
+	public static Variable makeConstant(BigDecimal value, String id, int[] siBase, String name, BigDecimal measurementError) {// TODO Constant error
 		Variable constant = new Variable(value, id, siBase);
+		if (measurementError != null) {
+			constant.setMeasurementError(measurementError);
+		}
 		constant.isConstant = true;
 		constant.name = name;
 		constMap.put(id, constant);
@@ -95,8 +127,10 @@ public class Variable {
 	}
 	
 	/** Sets the given unit for a unitless variable */
-	public void setUnit(Unit unit) {
+	public void setUnit(Unit unit) {// TODO Assuming that units are exact...
 		this.value = this.value.multiply(unit.baseRelation);
+		this.accumulatedMaxValue = this.accumulatedMaxValue.multiply(unit.baseRelation);
+		this.accumulatedMinValue = this.accumulatedMinValue.multiply(unit.baseRelation);
 		this.measure = unit.measure;
 		this.siBase = new int[7];
 		System.arraycopy(unit.measure.siBase, 0, this.siBase, 0, 7);
@@ -108,15 +142,21 @@ public class Variable {
 	
 	/** Calculates the given operation for the two varibles. */
 	public static Variable calc(Variable var1, CalcToken.TokenType op, Variable var2) {
+		Variable ans;
 		int[] ansSIbase = new int[7];
-		
 		if (op == CalcToken.TokenType.UMIN) {
 			System.arraycopy(var1.siBase, 0, ansSIbase, 0, 7);
-			return new Variable(var1.value.negate(), null, ansSIbase);
+			ans = new Variable(var1.value.negate(), null, ansSIbase);
+			ans.accumulatedMaxValue = var1.accumulatedMinValue.negate();
+			ans.accumulatedMinValue = var1.accumulatedMaxValue.negate();
+			return ans;
 		}
 		
 		else if (op == CalcToken.TokenType.FACT) {
-			return Function.factorial(var1);
+			ans = Function.factorial(var1);
+			ans.accumulatedMaxValue = ans.value;
+			ans.accumulatedMinValue = ans.value;
+			return ans;
 		}
 
 		else if (op == CalcToken.TokenType.POW) { // TODO non integer (& negative) powers
@@ -139,7 +179,10 @@ public class Variable {
 				for (int i=0; i<7; i++) {
 					ansSIbase[i] = var1.siBase[i]*pow;
 				}
-				return new Variable(var1.value.pow(pow), null, ansSIbase);
+				ans = new Variable(var1.value.pow(pow), null, ansSIbase);
+				ans.accumulatedMaxValue = var1.accumulatedMaxValue.pow(pow);
+				ans.accumulatedMinValue = var1.accumulatedMinValue.pow(pow);
+				return ans;
 			}
 			else {
 				Calculator.inform("Math error: only non-negative integer powers are supported.");
@@ -151,26 +194,55 @@ public class Variable {
 			for (int i=0; i<7; i++) {
 				ansSIbase[i] = var1.siBase[i] + var2.siBase[i];
 			}
-			return new Variable(var1.value.multiply(var2.value), null, ansSIbase);
+			ans = new Variable(var1.value.multiply(var2.value), null, ansSIbase);
+			BigDecimal min1min2 = var1.accumulatedMinValue.multiply(var2.accumulatedMinValue);
+			BigDecimal min1max2 = var1.accumulatedMinValue.multiply(var2.accumulatedMaxValue);
+			BigDecimal max1min2 = var1.accumulatedMaxValue.multiply(var2.accumulatedMinValue);
+			BigDecimal max1max2 = var1.accumulatedMaxValue.multiply(var2.accumulatedMaxValue);
+			ans.accumulatedMaxValue = min1min2.max(min1max2);
+			ans.accumulatedMaxValue = ans.accumulatedMaxValue.max(max1min2);
+			ans.accumulatedMaxValue = ans.accumulatedMaxValue.max(max1max2);
+			ans.accumulatedMinValue = min1min2.min(min1max2);
+			ans.accumulatedMinValue = ans.accumulatedMinValue.min(max1min2);
+			ans.accumulatedMinValue = ans.accumulatedMinValue.min(max1max2);
+			return ans;
 		}
-		else if (op == CalcToken.TokenType.DIV) {
+		else if (op == CalcToken.TokenType.DIV) {//TODO acc error + div by possibly zero
 			if (var2.value.compareTo(BigDecimal.ZERO) == 0) {
 				Calculator.inform("Math error: division by zero");
 				return null;
 			}
-			else if (var1.value.compareTo(BigDecimal.ZERO) == 0) {
-				return new Variable(BigDecimal.ZERO);
+			else if (var2.accumulatedMaxValue.signum() != var2.accumulatedMinValue.signum()) {
+				Calculator.inform("Error: Zero is in the range of possible measurement error of the divisor.\nPossible divivison by zero.");
+				var2.show();
+				return null;
 			}
 			
 			for (int i=0; i<7; i++) {
 				ansSIbase[i] = var1.siBase[i] - var2.siBase[i];
 			}
-			try {
-				return new Variable(var1.value.divide(var2.value), null, ansSIbase);
+			if  (var1.value.compareTo(BigDecimal.ZERO) == 0) {
+				ans = new Variable(BigDecimal.ZERO, null, ansSIbase);
 			}
-			catch (ArithmeticException ae) {
-				return new Variable(var1.value.divide(var2.value, 100, RoundingMode.HALF_UP), null, ansSIbase);
+			else {
+				try {
+					ans = new Variable(var1.value.divide(var2.value), null, ansSIbase);
+				}
+				catch (ArithmeticException ae) {
+					ans = new Variable(var1.value.divide(var2.value, 100, RoundingMode.HALF_UP), null, ansSIbase);
+				}
 			}
+			BigDecimal min1min2 = var1.accumulatedMinValue.divide(var2.accumulatedMinValue, 100, RoundingMode.HALF_UP);
+			BigDecimal min1max2 = var1.accumulatedMinValue.divide(var2.accumulatedMaxValue, 100, RoundingMode.HALF_UP);
+			BigDecimal max1min2 = var1.accumulatedMaxValue.divide(var2.accumulatedMinValue, 100, RoundingMode.HALF_UP);
+			BigDecimal max1max2 = var1.accumulatedMaxValue.divide(var2.accumulatedMaxValue, 100, RoundingMode.HALF_UP);
+			ans.accumulatedMaxValue = min1min2.max(min1max2);
+			ans.accumulatedMaxValue = ans.accumulatedMaxValue.max(max1min2);
+			ans.accumulatedMaxValue = ans.accumulatedMaxValue.max(max1max2);
+			ans.accumulatedMinValue = min1min2.min(min1max2);
+			ans.accumulatedMinValue = ans.accumulatedMinValue.min(max1min2);
+			ans.accumulatedMinValue = ans.accumulatedMinValue.min(max1max2);
+			return ans;
 		}
 		else if (op == CalcToken.TokenType.SUM || op == CalcToken.TokenType.SUB) {
 			boolean sameBase = true;
@@ -183,10 +255,16 @@ public class Variable {
 			if (sameBase) {
 				System.arraycopy(var1.siBase, 0, ansSIbase, 0, 7);
 				if (op == CalcToken.TokenType.SUM) {
-					return new Variable(var1.value.add(var2.value), null, ansSIbase);
+					ans = new Variable(var1.value.add(var2.value), null, ansSIbase);
+					ans.accumulatedMaxValue = var1.accumulatedMaxValue.add(var2.accumulatedMaxValue);
+					ans.accumulatedMinValue = var1.accumulatedMinValue.add(var2.accumulatedMinValue);
+					return ans;
 				}
 				else if (op == CalcToken.TokenType.SUB) {
-					return new Variable(var1.value.subtract(var2.value), null, ansSIbase);
+					ans = new Variable(var1.value.subtract(var2.value), null, ansSIbase);
+					ans.accumulatedMaxValue = var1.accumulatedMaxValue.subtract(var2.accumulatedMinValue);
+					ans.accumulatedMinValue = var2.accumulatedMinValue.subtract(var2.accumulatedMaxValue);
+					return ans;
 				}
 			}
 			else {
@@ -201,7 +279,7 @@ public class Variable {
 			return null;
 		}
 		else {
-			Calculator.inform("Error: Something weird happened with this calculation.\n Please inform the developer if you can see this.");
+			Calculator.inform("Error: Something weird happened with this calculation.\n Please inform the developer if you can see this message.");
 			return null;
 		}
 		Calculator.inform("Error: Something really weird happened with this calculation.\n Please inform the developer if you can see this message.");
@@ -224,7 +302,7 @@ public class Variable {
 	public void show(String unitAbr) {
 		int resLess;
 		int resGreater;
-		if (this.measure.name.equals("time")) {
+		if (this.measure != null && this.measure.name.equals("time")) {
 			BigDecimal[] aAndRemainder = this.value.divideAndRemainder(new BigDecimal("31536000"));
 			BigDecimal[] dAndRemainder = aAndRemainder[1].divideAndRemainder(new BigDecimal("86400"));
 			BigDecimal[] hAndRemainder = dAndRemainder[1].divideAndRemainder(new BigDecimal("3600"));
@@ -274,7 +352,7 @@ public class Variable {
 	
 	/** Prints the useful information for this variable or constant. */
 	public void show() {
-		
+		//System.out.println("Max: "+this.accumulatedMaxValue+" Min: "+this.accumulatedMinValue);
 		if (this.isConstant) {
 			Calculator.inform("Constant: "+this.id+" - "+this.name);
 		}
@@ -303,6 +381,25 @@ public class Variable {
 			}
 			else {
 				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.measure.baseUnit.abr);
+			}
+		}
+		if (this.accumulatedMaxValue != this.accumulatedMinValue) {
+			//System.out.println(this.accumulatedMaxValue.toPlainString()+" -- "+this.accumulatedMinValue.toPlainString());
+			BigDecimal maxError = this.accumulatedMaxValue.subtract(this.value).abs().max(this.accumulatedMinValue.subtract(this.value).abs());
+			if (maxError.compareTo(new BigDecimal("1e-50")) > 0) {
+				String errorLine;
+				if (this.isUnitless()) {
+					errorLine = "±"+maxError.setScale(30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString();
+				}
+				else {
+					errorLine = "±"+maxError.setScale(30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.measure.baseUnit.abr;
+				}
+				if (Calculator.showErrorPercentage && this.value.compareTo(BigDecimal.ZERO) != 0 && maxError.divide(this.value, 5, BigDecimal.ROUND_HALF_UP).compareTo(new BigDecimal("5e-5")) > 0) {
+					Calculator.inform(errorLine+" Error Å "+maxError.multiply(new BigDecimal("100")).divide(this.value, 5, BigDecimal.ROUND_HALF_UP).setScale(5, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" %");
+				}
+				else {
+					Calculator.inform(errorLine);
+				}
 			}
 		}
 	}

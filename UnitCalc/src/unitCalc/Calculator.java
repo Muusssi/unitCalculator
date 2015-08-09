@@ -10,14 +10,20 @@ import javax.swing.JTextArea;
 
 public class Calculator {
 	
-	static String version = "1.5";
+	static String version = "1.6";
 	
 	static String lastCalculation = null;
 	static JTextArea resultArea = null;
 	
 	static Variable pi;
+	static BigDecimal PI;
+	static BigDecimal PIx05;
+	static BigDecimal PIx15;
+	static BigDecimal PIx2;
 	static Variable e;
 	static Measure unitlesMeasure;
+	
+	static boolean showErrorPercentage = true;
 
 	public static String inform(String info) {
 		if (resultArea == null) {
@@ -76,8 +82,6 @@ public class Calculator {
 			else if (!Variable.varMap.containsKey(id) && !Unit.unitMap.containsKey(id)) {
 				inform("Unknown identifier: '"+id+"'");
 			}
-			
-			
 		}
 
 		
@@ -96,9 +100,14 @@ public class Calculator {
 			LinkedList<Variable> postFix = toPostFix(lexing);
 			ans = evaluate(postFix);
 			if (ans != null) {
-				ans = new Variable(ans.value, varName, ans.siBase);
-				ans.show();
-				new Variable(ans.value, "ans", ans.siBase);
+				Variable namedVar = new Variable(ans.value, varName, ans.siBase);
+				namedVar.accumulatedMaxValue = ans.accumulatedMaxValue;
+				namedVar.accumulatedMinValue = ans.accumulatedMinValue;
+				namedVar.show();
+				namedVar = new Variable(ans.value, "ans", ans.siBase);
+				namedVar.accumulatedMaxValue = ans.accumulatedMaxValue;
+				namedVar.accumulatedMinValue = ans.accumulatedMinValue;
+				
 			}
 		}
 		//General expression
@@ -142,7 +151,9 @@ public class Calculator {
 				else {
 					ans.show();
 				}
-				ans = new Variable(ans.value, "ans", ans.siBase);
+				Variable previousAns = new Variable(ans.value, "ans", ans.siBase);
+				previousAns.accumulatedMaxValue = ans.accumulatedMaxValue;
+				previousAns.accumulatedMinValue = ans.accumulatedMinValue;
 			}
 		}
 		Calculator.inform("-----------------------");
@@ -162,7 +173,7 @@ public class Calculator {
 			var = postFix.poll();
 			if (var.isOperation) {
 				if ((var.op == CalcToken.TokenType.UMIN || var.op == CalcToken.TokenType.FACT) && stack.size() >= 1) {
-					// Unary minus
+					// Unary minus or factorial
 					var1 = stack.pollLast();
 					stack.add(Variable.calc(var1, var.op, null));
 				}
@@ -172,14 +183,13 @@ public class Calculator {
 					stack.add(Variable.calc(var1, var.op, var2));
 				}
 				else {
-					inform("Syntax error");
+					inform("Syntax error: operands missing");
 					return null;
 				}
 			}
 			else if (var.isFunction) {
 				Function func = Function.functionMap.get(var.id);
 				if (stack.size() >= func.argNum) {
-					// TODO eval func
 					Variable[] fargs = new Variable[func.argNum];
 					for (int i=0; i<func.argNum; i++) {
 						fargs[i] = stack.pollLast();
@@ -223,6 +233,7 @@ public class Calculator {
 		CalcToken previousTok = null;
 		boolean expectingUnit = false;
 		boolean expectingBegin = false;
+		boolean unitSetForPrevious = false;
 		boolean notExpectingIdOrNum = false;
 		while (itr.hasNext()) {
 			tok = itr.next();
@@ -245,37 +256,44 @@ public class Calculator {
 						showError(tok.index);
 						return null;
 					}
+					unitSetForPrevious = true;
 				}
 				else {
 					if (Variable.varMap.containsKey(tok.id)) {
-						postFix.add(Variable.varMap.get(tok.id));
+						Variable namedVar = Variable.varMap.get(tok.id);
+						Variable newVar = new Variable(namedVar.value, null, namedVar.siBase);
+						newVar.accumulatedMaxValue = namedVar.accumulatedMaxValue;
+						newVar.accumulatedMinValue = namedVar.accumulatedMinValue;
+						postFix.add(newVar);
 						if (Variable.varMap.get(tok.id).isUnitless()) {
 							expectingUnit = true;
 						}
 						else {
 							expectingUnit = false;
 						}
+						unitSetForPrevious = false;
 					}
 					else if (Function.functionMap.containsKey(tok.id)) {
 						Variable funcVar = new Variable(CalcToken.TokenType.FUNC, tok.id);
 						stack.add(funcVar);
 						expectingBegin = true;
+						unitSetForPrevious = false;
 					}
 					else {
 						if (Unit.unitMap.containsKey(tok.id)) {
 							if (previousTok != null) {
 								if (Variable.varMap.containsKey(previousTok.id)) {
-									inform("Error: Unable to set unit '"+tok.id+"' because "+previousTok.id+" already has a unit.");
+									inform("Error: Unable to set unit '"+tok.id+"' because "+previousTok.id+" already has a unit: "
+											+Variable.varMap.get(previousTok.id).measure.baseUnit.abr);
 									return null;
 								}
 								else {
-									inform("Error: Unable to set unit '"+tok.id+"' because "+previousTok.id+" already has a unit: "
-												+Variable.varMap.get(previousTok.id).measure.baseUnit.abr);
+									inform("Error: Unable to set unit '"+tok.id+"' because "+previousTok.id+" is not a variable or a number");
 									return null;
 								}
 							}
 							else {
-								inform("Error: Unable to set unit "+tok.id);
+								inform("Error: Unkonw variable "+tok.id);
 								return null;
 							}
 						}
@@ -294,9 +312,12 @@ public class Calculator {
 					showError(tok.index);
 					return null;
 				}
-				BigDecimal a = new BigDecimal(tok.id);
-				postFix.add(new Variable(a));
+				BigDecimal a = new BigDecimal(tok.id); // TODO Reading number
+				Variable var = new Variable(a, null, null);
+				var.setMeasurementError(null);
+				postFix.add(var);
 				expectingUnit = true;
+				unitSetForPrevious = false;
 			}
 			// Starting parenthesis
 			else if (tok.type == CalcToken.TokenType.BEGIN) {
@@ -308,6 +329,7 @@ public class Calculator {
 				expectingUnit = false;
 				expectingBegin = false;
 				stack.add(new Variable(CalcToken.TokenType.BEGIN, false));
+				unitSetForPrevious = false;
 			}
 			// Ending parenthesis
 			else if (tok.type == CalcToken.TokenType.END) {
@@ -317,7 +339,7 @@ public class Calculator {
 				while (true) {
 					var = stack.pollLast();
 					if (var == null) {
-						inform("Syntax error: Parenthesis do not match! Left missing.");
+						inform("Syntax error: Parenthesis do not match! ')' missing.");
 						showError(tok.index);
 						return null;
 					}
@@ -338,6 +360,7 @@ public class Calculator {
 						return null;
 					}
 				}
+				unitSetForPrevious = false;
 			}
 			else if (tok.type == CalcToken.TokenType.FSEP) {
 				notExpectingIdOrNum = false;
@@ -350,9 +373,51 @@ public class Calculator {
 					showError(tok.index);
 					return null;
 				}
+				unitSetForPrevious = false;
+			}
+			else if (tok.type == CalcToken.TokenType.QMARK) {//TODO think about expecting things...
+				if (!itr.hasNext()) {
+					Calculator.inform("Syntax error: Explicit measurement error expected after '?'");
+					showError(tok.index);
+					return null;
+				}
+				
+				if (unitSetForPrevious) {
+					inform("Error: Unit should be decleared after measurement error.");
+					return null;
+				}
+				
+				tok = itr.next();
+				if (tok.type != CalcToken.TokenType.NUM && !Variable.varMap.containsKey(tok.id)) {//TODO var as error
+					Calculator.inform("Syntax error: Explicit measurement error should be a positive number or variable of the same measurement.");
+					showError(tok.index);
+					return null;
+				}
+				Variable var = postFix.pollLast();
+				if (var == null || var.value == null) {
+					inform("Error: measurement error can only be declared to numbers or variables.");
+					return null;
+				}
+				if (tok.type == CalcToken.TokenType.NUM) {
+					var.setMeasurementError(new BigDecimal(tok.id));
+				}
+				// Does not accumulate error from the explicit error variables error
+				else if (Variable.varMap.get(tok.id).isUnitless()) {
+					var.setMeasurementError(Variable.varMap.get(tok.id).value);
+				}
+				else if (Variable.varMap.get(previousTok.id) != null && (Variable.varMap.get(previousTok.id).measure == Variable.varMap.get(tok.id).measure)) {
+					var.setMeasurementError(Variable.varMap.get(tok.id).value);
+				}
+				else {
+					inform("Error: measurement error should have the same measure as the variable it is assigned to.");
+					return null;
+				}
+				unitSetForPrevious = false;
+				postFix.add(var);
 			}
 			else if (tok.operator) {
 				notExpectingIdOrNum = false;
+				expectingUnit = false;
 				if (tok.type == CalcToken.TokenType.FACT) {
 					notExpectingIdOrNum = true;
 				}
@@ -360,12 +425,13 @@ public class Calculator {
 					stack.add(new Variable(CalcToken.TokenType.UMIN, true));
 				}
 				else {
-					expectingUnit = false;
+					
 					while (!stack.isEmpty() && evaluatesFirst(stack.getLast().op, tok.type)) {
 						postFix.add(stack.pollLast());
 					}
 					stack.add(new Variable(tok.type, true));
 				}
+				unitSetForPrevious = false;
 			}
 			
 			else {
@@ -675,9 +741,13 @@ public class Calculator {
 		
 		Measure areaDensity = new Measure("areaDensity", -2,1,0,0,0,0,0);
 		areaDensity.setBaseUnit("kilogram per square meter", "kg|m2");
+		unit = areaDensity.addUnit("gram per square meter", "g|m2", new BigDecimal("0.001"));
+		unit.addSIScalers(1);
 		
 		Measure density = new Measure("density", -3,1,0,0,0,0,0);
 		density.setBaseUnit("kilogram per cubic meter", "kg|m3");
+		unit = density.addUnit("gram per cubic meter", "g|m3", new BigDecimal("0.001"));
+		unit.addSIScalers(1);
 		
 		Measure specificVolume = new Measure("specificVolume", 3,-1,0,0,0,0,0);
 		specificVolume.setBaseUnit("cubic meter per kilogram", "m3|kg");
@@ -799,48 +869,54 @@ public class Calculator {
 
 
 		// Constants
-		Variable.makeConstant(new BigDecimal("2.99792458E8"), "c", velocity.siBase, "speed of light");
-		Variable.makeConstant(new BigDecimal("6.67259E-11"), "G", gravitationalConstantMeasure.siBase, "Newtonian constant of gravitation");
-		Variable.makeConstant(new BigDecimal("9.80665"), "g", acceleration.siBase, "normal gravitational acceleration");
-		Variable.makeConstant(new BigDecimal("273.15"), "T_0", temperature.siBase, "normal temperature");
-		Variable.makeConstant(new BigDecimal("101325"), "p_0", pressure.siBase, "standard atmospheric pressure");
-		Variable.makeConstant(new BigDecimal("22.41410E-3"), "V_m", molarVolume.siBase, "molar volume of ideal gas");
-		Variable.makeConstant(new BigDecimal("8.314510"), "R", molarEntropy.siBase, "molar gas constant");
-		Variable.makeConstant(new BigDecimal("6.0221367E23"), "N_A", Measure.unitlessBase, "Avogadro's constant");
+		Variable.makeConstant(new BigDecimal("2.99792458E8"), "c", velocity.siBase, "speed of light", null);
+		Variable.makeConstant(new BigDecimal("6.67259E-11"), "G", gravitationalConstantMeasure.siBase, "Newtonian constant of gravitation", null);
+		Variable.makeConstant(new BigDecimal("9.80665"), "g", acceleration.siBase, "normal gravitational acceleration", null);
+		Variable.makeConstant(new BigDecimal("273.15"), "T_0", temperature.siBase, "normal temperature", BigDecimal.ZERO);
+		Variable.makeConstant(new BigDecimal("101325"), "p_0", pressure.siBase, "standard atmospheric pressure", BigDecimal.ZERO);
+		Variable.makeConstant(new BigDecimal("22.41410E-3"), "V_m", molarVolume.siBase, "molar volume of ideal gas", null);
+		Variable.makeConstant(new BigDecimal("8.314510"), "R", molarEntropy.siBase, "molar gas constant", null);
+		Variable.makeConstant(new BigDecimal("6.0221367E23"), "N_A", Measure.unitlessBase, "Avogadro's constant", null);
 		
-		pi = Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "¹", Measure.unitlessBase, "pi");
+		pi = Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "¹", Measure.unitlessBase, "pi", null);
 		pi.addAlternativeId("pi");
-		e = Variable.makeConstant(new BigDecimal("2.71828182845904523536028747135266249775724709369995"), "e", Measure.unitlessBase, "Napier's constant");
+		PI = pi.value;
+		PIx05 = pi.value.multiply(new BigDecimal("0.5"));
+		PIx2 = pi.value.multiply(new BigDecimal("2"));
+		PIx15 = pi.value.multiply(new BigDecimal("1.5"));
+		e = Variable.makeConstant(new BigDecimal("2.71828182845904523536028747135266249775724709369995"), "e", Measure.unitlessBase, "Napier's constant", null);
 		
-		Variable.makeConstant(new BigDecimal("9.1093897E-31"), "m_e", mass.siBase, "invariant mass of an electron");
-		Variable.makeConstant(new BigDecimal("1.6726231E-27"), "m_p", mass.siBase, "invariant mass of a proton");
-		Variable.makeConstant(new BigDecimal("1.6749286E-27"), "m_n", mass.siBase, "invariant mass of a neutron");
-		Variable.makeConstant(new BigDecimal("3.3435860E-27"), "m_d", mass.siBase, "invariant mass of a deuteron");
-		Variable.makeConstant(new BigDecimal("6.644663E-27"), "m_alpha", mass.siBase, "invariant mass of a alpha particle");
+		Variable.makeConstant(new BigDecimal("9.1093897E-31"), "m_e", mass.siBase, "invariant mass of an electron", null);
+		Variable.makeConstant(new BigDecimal("1.6726231E-27"), "m_p", mass.siBase, "invariant mass of a proton", null);
+		Variable.makeConstant(new BigDecimal("1.6749286E-27"), "m_n", mass.siBase, "invariant mass of a neutron", null);
+		Variable.makeConstant(new BigDecimal("3.3435860E-27"), "m_d", mass.siBase, "invariant mass of a deuteron", null);
+		Variable.makeConstant(new BigDecimal("6.644663E-27"), "m_alpha", mass.siBase, "invariant mass of a alpha particle", null);
 
-		Variable.makeConstant(new BigDecimal("8.85419"), "epsilon_0", permittivity.siBase, "permittivity of vacuum");
-		Variable var = Variable.makeConstant(new BigDecimal("1.25664"), "µ_0", permeability.siBase, "permeability of vacuum");
+		Variable.makeConstant(new BigDecimal("8.85419"), "epsilon_0", permittivity.siBase, "permittivity of vacuum", null);
+		Variable var = Variable.makeConstant(new BigDecimal("1.25664"), "µ_0", permeability.siBase, "permeability of vacuum", null);
 		var.addAlternativeId("mu_0");
 
-		Variable.makeConstant(new BigDecimal("6.6260755E-34"), "h", action.siBase, "Planck's constant");
+		Variable.makeConstant(new BigDecimal("6.6260755E-34"), "h", action.siBase, "Planck's constant", null);
 
-		// Note frequencys:
-		Variable.makeConstant(new BigDecimal("16.35"), "C0", frequency.siBase, "frequency of note C0");
-		Variable consti = Variable.makeConstant(new BigDecimal("17.32"), "C#0", frequency.siBase, "frequency of note C#0");
+		// Note frequencies:
+		Variable.makeConstant(new BigDecimal("16.35"), "C0", frequency.siBase, "frequency of note C0", null);
+		Variable consti = Variable.makeConstant(new BigDecimal("17.32"), "C#0", frequency.siBase, "frequency of note C#0", null);
 		consti.addAlternativeId("Db0");
-		Variable.makeConstant(new BigDecimal("18.35"), "D0", frequency.siBase, "frequency of note D0");
-		consti = Variable.makeConstant(new BigDecimal("19.45"), "D#0", frequency.siBase, "frequency of note D#0");
+		Variable.makeConstant(new BigDecimal("18.35"), "D0", frequency.siBase, "frequency of note D0", null);
+		consti = Variable.makeConstant(new BigDecimal("19.45"), "D#0", frequency.siBase, "frequency of note D#0", null);
 		consti.addAlternativeId("Eb0");
 		
 		
 		
 		// units for angle
 		
-		unit = unitlesMeasure.addUnit("degrees", "¼", Variable.varMap.get("pi").value.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
+		unit = unitlesMeasure.addUnit("degrees", "¼", PI.divide(new BigDecimal("180"), 100, RoundingMode.HALF_UP) );
 		unit.addAlternativeAbr("deg");
-		unit = unitlesMeasure.addUnit("pi", "¹", Variable.varMap.get("pi").value);
+		unit = unitlesMeasure.addUnit("pi", "¹", PI);
 		unit.addAlternativeAbr("pi");
 		unitlesMeasure.addUnit("radians", "rad", new BigDecimal("1"));
+		unitlesMeasure.addUnit("per cent", "%", new BigDecimal("0.01"));
+		unitlesMeasure.addUnit("per mil", "ä", new BigDecimal("0.001"));
 		
 		
 		Function.initFunctionMap();
@@ -857,9 +933,6 @@ public class Calculator {
 		while (true) {
 			calculation = reader.nextLine();
 			answer = calculate(calculation);
-			if (answer != null) {
-				//answer.show();
-			}
 		}
 		
 	}

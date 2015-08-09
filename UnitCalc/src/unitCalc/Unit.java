@@ -75,6 +75,7 @@ public class Unit {
 				//System.out.println(newUnit.abr);
 				if (preFixes[i].equals("micro ")) {
 					newUnit.addAlternativeAbr("micro"+abr);
+					newUnit.addAlternativeAbr("u"+abr);
 				}
 			}
 		}

@@ -104,12 +104,23 @@ public class Parser {
 			tok = new CalcToken(CalcToken.TokenType.CONV, i);
 			i++;
 		}
-		
+		else if (c == '?') {
+			tok = new CalcToken(CalcToken.TokenType.QMARK, i);
+			i++;
+		}
+		else if (c == '%') {
+			tok = new CalcToken(CalcToken.TokenType.ID, "%", i);
+			i++;
+		}
+		else if (c == 'ä') {
+			tok = new CalcToken(CalcToken.TokenType.ID, "ä", i);
+			i++;
+		}
 		
 		// IDs
 		else if (Character.isLetter(c)) {
 			while (input.length() > i && (Character.isLetter(input.charAt(i)) || input.charAt(i) == '_' ||
-					input.charAt(i) == '|' || Character.isDigit(input.charAt(i)) )) {
+					input.charAt(i) == '|' || Character.isDigit(input.charAt(i)))) {
 				c = input.charAt(i);
 				current += c;
 				i++;
