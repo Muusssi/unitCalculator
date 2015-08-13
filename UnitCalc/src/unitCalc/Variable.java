@@ -111,9 +111,7 @@ public class Variable {
 	/** For constants */
 	public static Variable makeConstant(BigDecimal value, String id, int[] siBase, String name, BigDecimal measurementError) {// TODO Constant error
 		Variable constant = new Variable(value, id, siBase);
-		if (measurementError != null) {
-			constant.setMeasurementError(measurementError);
-		}
+		constant.setMeasurementError(measurementError);
 		constant.isConstant = true;
 		constant.name = name;
 		constMap.put(id, constant);
@@ -154,11 +152,8 @@ public class Variable {
 		
 		else if (op == CalcToken.TokenType.FACT) {
 			ans = Function.factorial(var1);
-			ans.accumulatedMaxValue = ans.value;
-			ans.accumulatedMinValue = ans.value;
 			return ans;
 		}
-
 		else if (op == CalcToken.TokenType.POW) { // TODO non integer (& negative) powers
 			if (!var2.isUnitless()) {
 				Calculator.inform("Math error: powers must be unitless non-negative integers.");
@@ -307,11 +302,11 @@ public class Variable {
 			BigDecimal[] dAndRemainder = aAndRemainder[1].divideAndRemainder(new BigDecimal("86400"));
 			BigDecimal[] hAndRemainder = dAndRemainder[1].divideAndRemainder(new BigDecimal("3600"));
 			BigDecimal[] minAndRemainder = hAndRemainder[1].divideAndRemainder(new BigDecimal("60"));
-			Calculator.inform("= "+aAndRemainder[0].toPlainString()+" years "
-					+dAndRemainder[0].toPlainString()+" days "
-					+hAndRemainder[0].toPlainString()+" hours "
-					+minAndRemainder[0].toPlainString()+" mins "
-					+minAndRemainder[1].toPlainString()+" s ");
+			Calculator.inform("= "+aAndRemainder[0].stripTrailingZeros().toPlainString()+" years "
+					+dAndRemainder[0].stripTrailingZeros().toPlainString()+" days "
+					+hAndRemainder[0].stripTrailingZeros().toPlainString()+" hours "
+					+minAndRemainder[0].stripTrailingZeros().toPlainString()+" mins "
+					+minAndRemainder[1].stripTrailingZeros().toPlainString()+" s ");
 		}
 		if (unitAbr == null) {
 			//Show all
@@ -352,12 +347,11 @@ public class Variable {
 	
 	/** Prints the useful information for this variable or constant. */
 	public void show() {
-		//System.out.println("Max: "+this.accumulatedMaxValue+" Min: "+this.accumulatedMinValue);
 		if (this.isConstant) {
-			Calculator.inform("Constant: "+this.id+" - "+this.name);
+			Calculator.inform("-- Constant: "+this.id+" - "+this.name);
 		}
 		else if ((this.id != null) && (!this.id.equals("var"))) {
-			Calculator.inform("Variable: "+this.id);
+			Calculator.inform("-- Variable: "+this.id);
 		}
 		
 		int scale = this.value.scale();
@@ -383,8 +377,10 @@ public class Variable {
 				Calculator.inform("= "+this.value.setScale(scale, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.measure.baseUnit.abr);
 			}
 		}
-		if (this.accumulatedMaxValue != this.accumulatedMinValue) {
-			//System.out.println(this.accumulatedMaxValue.toPlainString()+" -- "+this.accumulatedMinValue.toPlainString());
+		if (Calculator.useMeasurementError && this.accumulatedMaxValue != this.accumulatedMinValue) {
+			if (Calculator.showErrorRange) {
+				Calculator.inform("Error range = ["+this.accumulatedMinValue.setScale(30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+", "+this.accumulatedMaxValue.setScale(30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+"]");
+			}
 			BigDecimal maxError = this.accumulatedMaxValue.subtract(this.value).abs().max(this.accumulatedMinValue.subtract(this.value).abs());
 			if (maxError.compareTo(new BigDecimal("1e-50")) > 0) {
 				String errorLine;
@@ -398,7 +394,13 @@ public class Variable {
 					Calculator.inform(errorLine+" Error Å "+maxError.multiply(new BigDecimal("100")).divide(this.value, 5, BigDecimal.ROUND_HALF_UP).setScale(5, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" %");
 				}
 				else {
-					Calculator.inform(errorLine);
+					if (Calculator.showErrorPercentage) {
+						Calculator.inform(errorLine+" Error < 0.00005 %");
+					}
+					else {
+						Calculator.inform(errorLine);
+					}
+					
 				}
 			}
 		}

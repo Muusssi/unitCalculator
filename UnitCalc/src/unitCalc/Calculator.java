@@ -14,6 +14,7 @@ public class Calculator {
 	
 	static String lastCalculation = null;
 	static JTextArea resultArea = null;
+	static CalcGUI GUI = null;
 	
 	static Variable pi;
 	static BigDecimal PI;
@@ -23,7 +24,10 @@ public class Calculator {
 	static Variable e;
 	static Measure unitlesMeasure;
 	
-	static boolean showErrorPercentage = true;
+	
+	static boolean useMeasurementError = false;
+	static boolean showErrorPercentage = false;
+	static boolean showErrorRange = false;
 
 	public static String inform(String info) {
 		if (resultArea == null) {
@@ -37,6 +41,14 @@ public class Calculator {
 
 	public static void setResultArea(JTextArea area) {
 		resultArea = area;
+	}
+	
+	public static void setMeasurementErrorOn() {
+		useMeasurementError = true;
+		if (GUI != null) {
+			GUI.switchMeasurementError();
+		}
+		inform("NOTICE: Measurement error was disabled but the use of explicit meausrement error has now been enabled.");
 	}
 	
 	public static void showError(int index) {
@@ -314,7 +326,9 @@ public class Calculator {
 				}
 				BigDecimal a = new BigDecimal(tok.id); // TODO Reading number
 				Variable var = new Variable(a, null, null);
-				var.setMeasurementError(null);
+				if (useMeasurementError) {
+					var.setMeasurementError(null);
+				}
 				postFix.add(var);
 				expectingUnit = true;
 				unitSetForPrevious = false;

@@ -47,9 +47,9 @@ public class Unit {
 	/** Prints the useful information for this unit. */
 	public void show() {
 		if (this.isBaseUnit) {
-			Calculator.inform("The base unit of ["+this.measure.name+"] = "+this.abr+" : ("+this.name+")");
+			Calculator.inform("-- The base unit of ["+this.measure.name+"] = "+this.abr+" : ("+this.name+")");
 		} else {
-			Calculator.inform("Unit of ["+this.measure.name+"] = "+this.abr+" : ("+this.name+")");
+			Calculator.inform("-- Unit of ["+this.measure.name+"] = "+this.abr+" : ("+this.name+")");
 			Calculator.inform("1 "+this.abr+" = "+this.baseRelation.toEngineeringString()+" "+this.measure.baseUnit.abr);
 		}
 	}

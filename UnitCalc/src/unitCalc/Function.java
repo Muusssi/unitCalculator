@@ -62,7 +62,24 @@ public class Function {
 			multiplier = multiplier.add(BigDecimal.ONE);
 			ans = ans.multiply(multiplier);
 		}
-		return new Variable(ans, null, null);
+		Variable ansVar = new Variable(ans, null, null);
+		
+		BigDecimal max = new BigDecimal(1);
+		multiplier = new BigDecimal(1);
+		while (multiplier.compareTo(arg.accumulatedMaxValue.subtract(BigDecimal.ONE)) <= 0) {
+			multiplier = multiplier.add(BigDecimal.ONE);
+			max = max.multiply(multiplier);
+		}
+		ansVar.accumulatedMaxValue = max;
+		
+		BigDecimal min = new BigDecimal(1);
+		multiplier = new BigDecimal(1);
+		while (multiplier.compareTo(arg.accumulatedMinValue.subtract(BigDecimal.ONE)) <= 0) {
+			multiplier = multiplier.add(BigDecimal.ONE);
+			min = min.multiply(multiplier);
+		}
+		ansVar.accumulatedMinValue = min;
+		return ansVar;
 	}
 
 	

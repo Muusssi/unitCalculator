@@ -105,6 +105,9 @@ public class Parser {
 			i++;
 		}
 		else if (c == '?') {
+			if (!Calculator.useMeasurementError) {
+				Calculator.setMeasurementErrorOn();
+			}
 			tok = new CalcToken(CalcToken.TokenType.QMARK, i);
 			i++;
 		}
