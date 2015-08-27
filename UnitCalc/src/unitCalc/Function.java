@@ -99,7 +99,7 @@ public class Function {
 		new Function("cubic root", "cbrt", 1, "", funcEvaluators.new CbrtEvaluator());
 		new Function("time now", "now", 0, "returns time since 1970-01-01 for comparing dates", funcEvaluators.new NowEvaluator());
 		new Function("date", "date", 3, "date returns time between 1970-01-01 and specified date", funcEvaluators.new DateEvaluator());
-		new Function("time", "time", 6, "date returns time since 1970-01-01 for comparing dates", funcEvaluators.new TimeEvaluator());
+		//new Function("time", "time", 6, "date returns time since 1970-01-01 for comparing dates", funcEvaluators.new TimeEvaluator());
 		
 		// TODO functions
 	}
