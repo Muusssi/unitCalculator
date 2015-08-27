@@ -121,7 +121,7 @@ public class Parser {
 		}
 		
 		// IDs
-		else if (Character.isLetter(c)) {
+		else if (Character.isLetter(c) || c == '|') {
 			while (input.length() > i && (Character.isLetter(input.charAt(i)) || input.charAt(i) == '_' ||
 					input.charAt(i) == '|' || Character.isDigit(input.charAt(i)))) {
 				c = input.charAt(i);

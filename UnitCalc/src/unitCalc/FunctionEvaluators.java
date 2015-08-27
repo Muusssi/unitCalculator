@@ -1,7 +1,10 @@
 package unitCalc;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.SimpleTimeZone;
 
 public class FunctionEvaluators {
 	
@@ -258,6 +261,80 @@ public class FunctionEvaluators {
 		}
 	}
 	
+// Time functions
+	public class DateEvaluator implements FunctionEvaluator {
+		public Variable evaluate(Variable[] arguments) {
+			if (!checkArgumentsAreUnitless("Date", arguments)) {
+				return null;
+			}
+			if (arguments[0].value.compareTo(BigDecimal.ZERO) <= 0 || arguments[0].value.compareTo(new BigDecimal(31)) > 0) {
+				Calculator.inform("Date evaluation error - The third argument of date() should be unitles integer between 1 and 31.");
+				return null;
+			}
+			if (arguments[1].value.compareTo(BigDecimal.ZERO) <= 0 || arguments[1].value.compareTo(new BigDecimal(31)) > 0) {
+				Calculator.inform("Date evaluation error - The second argument of date() should be unitles integer between 1 and 12.");
+				return null;
+			}
+			if (arguments[2].value.compareTo(BigDecimal.ZERO) <= 0 || arguments[2].value.compareTo(new BigDecimal("9999")) > 0) {
+				Calculator.inform("Date evaluation error - The year 0 did not actually exist and negative years not yet supported as well as years after 9999.");
+				return null;
+			}
+			String day = arguments[0].value.toPlainString();
+			if (arguments[0].value.compareTo(new BigDecimal("10")) < 0) {
+				day = "0"+day;
+			}
+			String month = arguments[1].value.toPlainString();
+			if (arguments[1].value.compareTo(new BigDecimal("10")) < 0) {
+				month = "0"+month;
+			}
+			String year = arguments[2].value.toPlainString();
+			if (arguments[2].value.compareTo(new BigDecimal("1000")) < 0) {
+				year = "0"+year;
+			}
+			if (arguments[2].value.compareTo(new BigDecimal("100")) < 0) {
+				year = "0"+year;
+			}
+			if (arguments[2].value.compareTo(new BigDecimal("10")) < 0) {
+				year = "0"+year;
+			}
+			System.out.println(year+"-"+month+"-"+day);
+			
+		    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		    //df.setTimeZone(new SimpleTimeZone(SimpleTimeZone.UTC_TIME, "UTC"));
+		    Date date = null;
+			try {
+				date = df.parse(year+"-"+month+"-"+day);
+			} catch (ParseException e) {
+				Calculator.inform("Date evaluation error - Unable to parse the date.");
+				return null;
+			}
+		    System.out.println(date.toString());
+			Variable ans = new Variable(BigDecimal.valueOf(date.getTime()).multiply(new BigDecimal("0.001")), null, null);
+			ans.setMeasurementError(new BigDecimal("43200"));//half day error
+			ans.setUnit(Unit.unitMap.get("s"));
+			return ans;
+		}
+	}
+	
+	public class NowEvaluator implements FunctionEvaluator {
+		public Variable evaluate(Variable[] arguments) {
+			Variable ans = new Variable(BigDecimal.valueOf(new Date().getTime()).multiply(new BigDecimal("0.001")), null, null);
+			ans.setMeasurementError(null);
+			ans.setUnit(Unit.unitMap.get("s"));
+			return ans;
+		}
+	}
+	
+	
+	private static boolean checkArgumentsAreUnitless(String functionName, Variable[] args) {
+		for (int i=0; i< args.length; i++) {
+			if (!args[i].isUnitless() || !args[i].isInteger()) {
+				Calculator.inform(functionName+" evaluation error - The arguments of "+functionName+"() should be unitles integers.");
+				return false;
+			}
+		}
+		return true;
+	}
 
 	
 }

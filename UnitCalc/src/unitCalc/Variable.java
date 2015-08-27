@@ -82,6 +82,16 @@ public class Variable {
 		return true;
 	}
 	
+	public boolean isInteger() {
+		if (this.value.divideAndRemainder(BigDecimal.ONE)[1].compareTo(BigDecimal.ZERO) == 0) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	
 	private int getNumberOfDecimalPlaces() {
 	    String string = this.value.toPlainString();
 	    int index = string.indexOf(".");
@@ -92,7 +102,6 @@ public class Variable {
 		if (measurementError == null) {
 			int decimalPlaces = this.getNumberOfDecimalPlaces();
 			int scale = this.value.scale();
-			//System.out.println(this.value.toPlainString()+" "+scale);
 			if (decimalPlaces != 0) {
 				this.accumulatedMaxValue = this.value.add(new BigDecimal("5e-"+(decimalPlaces+1)));
 				this.accumulatedMinValue = this.value.subtract(new BigDecimal("5e-"+(decimalPlaces+1)));

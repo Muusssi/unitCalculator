@@ -10,7 +10,7 @@ import javax.swing.JTextArea;
 
 public class Calculator {
 	
-	static String version = "1.6";
+	static String version = "1.7";
 	
 	static String lastCalculation = null;
 	static JTextArea resultArea = null;
@@ -216,7 +216,11 @@ public class Calculator {
 				stack.add(var);
 			}
 		}
-		if (stack.size() != 1) {
+		if (stack.size() < 1) {
+			inform("Syntax error");
+			return null;
+		}
+		else if (stack.size() > 1) {
 			inform("Syntax error");
 			return null;
 		}
@@ -247,11 +251,17 @@ public class Calculator {
 		boolean expectingBegin = false;
 		boolean unitSetForPrevious = false;
 		boolean notExpectingIdOrNum = false;
+		int functionArgumentsExpected = -1;
 		while (itr.hasNext()) {
 			tok = itr.next();
 			
 			// ID
 			if (tok.type == CalcToken.TokenType.ID) {
+				if (functionArgumentsExpected == 0) {
+					inform("Syntax error: this function got too many arguments");
+					showError(tok.index);
+					return null;
+				}
 				if (notExpectingIdOrNum) {
 					inform("Syntax error");
 					showError(tok.index);
@@ -286,6 +296,7 @@ public class Calculator {
 						unitSetForPrevious = false;
 					}
 					else if (Function.functionMap.containsKey(tok.id)) {
+						functionArgumentsExpected = Function.functionMap.get(tok.id).argNum;
 						Variable funcVar = new Variable(CalcToken.TokenType.FUNC, tok.id);
 						stack.add(funcVar);
 						expectingBegin = true;
@@ -319,12 +330,17 @@ public class Calculator {
 			}
 			// Number
 			else if (tok.type == CalcToken.TokenType.NUM) {
+				if (functionArgumentsExpected == 0) {
+					inform("Syntax error: this function got too many arguments");
+					showError(tok.index);
+					return null;
+				}
 				if (notExpectingIdOrNum) {
 					inform("Syntax error");
 					showError(tok.index);
 					return null;
 				}
-				BigDecimal a = new BigDecimal(tok.id); // TODO Reading number
+				BigDecimal a = new BigDecimal(tok.id);
 				Variable var = new Variable(a, null, null);
 				if (useMeasurementError) {
 					var.setMeasurementError(null);
@@ -347,6 +363,9 @@ public class Calculator {
 			}
 			// Ending parenthesis
 			else if (tok.type == CalcToken.TokenType.END) {
+				if (functionArgumentsExpected == 0) {
+					functionArgumentsExpected = -1;
+				}
 				notExpectingIdOrNum = false;
 				expectingUnit = false;
 				Variable var;
@@ -377,6 +396,12 @@ public class Calculator {
 				unitSetForPrevious = false;
 			}
 			else if (tok.type == CalcToken.TokenType.FSEP) {
+				if (functionArgumentsExpected == 0) {
+					inform("Syntax error: this function got too many arguments");
+					showError(tok.index);
+					return null;
+				}
+				functionArgumentsExpected--;
 				notExpectingIdOrNum = false;
 				expectingUnit = false;
 				while (!stack.isEmpty() && stack.getLast().op != CalcToken.TokenType.BEGIN) {
@@ -389,7 +414,7 @@ public class Calculator {
 				}
 				unitSetForPrevious = false;
 			}
-			else if (tok.type == CalcToken.TokenType.QMARK) {//TODO think about expecting things...
+			else if (tok.type == CalcToken.TokenType.QMARK) {
 				if (!itr.hasNext()) {
 					Calculator.inform("Syntax error: Explicit measurement error expected after '?'");
 					showError(tok.index);
@@ -402,7 +427,7 @@ public class Calculator {
 				}
 				
 				tok = itr.next();
-				if (tok.type != CalcToken.TokenType.NUM && !Variable.varMap.containsKey(tok.id)) {//TODO var as error
+				if (tok.type != CalcToken.TokenType.NUM && !Variable.varMap.containsKey(tok.id)) {
 					Calculator.inform("Syntax error: Explicit measurement error should be a positive number or variable of the same measurement.");
 					showError(tok.index);
 					return null;
@@ -435,11 +460,10 @@ public class Calculator {
 				if (tok.type == CalcToken.TokenType.FACT) {
 					notExpectingIdOrNum = true;
 				}
-				if (tok.type == CalcToken.TokenType.SUB && (previousTok == null || previousTok.operator || previousTok.type == CalcToken.TokenType.BEGIN)) {
+				if (tok.type == CalcToken.TokenType.SUB && (previousTok == null || (previousTok.operator && previousTok.type != CalcToken.TokenType.END))) {
 					stack.add(new Variable(CalcToken.TokenType.UMIN, true));
 				}
 				else {
-					
 					while (!stack.isEmpty() && evaluatesFirst(stack.getLast().op, tok.type)) {
 						postFix.add(stack.pollLast());
 					}
@@ -454,7 +478,7 @@ public class Calculator {
 				return null;
 			}
 			if (expectingBegin && (!Function.functionMap.containsKey(tok.id) || !itr.hasNext())) {
-				Calculator.inform("Syntax error: Expecting () after function "+tok.id);
+				Calculator.inform("Syntax error: Expecting '()' after function "+tok.id);
 				Calculator.showError(tok.index);
 				return null;
 			}
@@ -669,8 +693,8 @@ public class Calculator {
 		catalyticActivity.baseUnit.addSIScalers(1);
 		
 		
-		//Derived units
-		Measure area = new Measure("area", 2,0,0,0,0,0,0);
+	//Derived units
+		Measure area = new Measure("area or fuel efficiency", 2,0,0,0,0,0,0);
 		area.setBaseUnit("square meters", "m2");
 		area.baseUnit.addSIScalers(2);
 		area.addUnit("square kilometer", "km2", new BigDecimal("1000000"));
@@ -681,7 +705,9 @@ public class Calculator {
 		area.addUnit("square foot", "ft2", new BigDecimal("0.09290304"));
 		area.addUnit("square mile", "mi2", new BigDecimal("2589988.110336"));
 		area.addUnit("square inch", "in2", new BigDecimal("0.00064516"));
-		
+		// Fuel efficiencies
+		area.addUnit("cubic meter per meter", "m3|m", BigDecimal.ONE);
+		area.addUnit("liter per 100 kilometers", "l|100km", new BigDecimal("0.00000001"));
 
 		Measure volume = new Measure("volume", 3,0,0,0,0,0,0);
 		volume.setBaseUnit("cubic meters", "m3");
@@ -702,6 +728,14 @@ public class Calculator {
 		volume.addUnit("pint (Imperial)", "pint", new BigDecimal("0.0005682"));
 		volume.addUnit("pint (US)", "pints_us", new BigDecimal("0.0004731"));
 		volume.addUnit("fluid ounce", "fl_oz", new BigDecimal("0.0000295735296"));
+
+		Measure milage = new Measure("milage", -2,0,0,0,0,0,0);
+		milage.setBaseUnit("meters per cubic meter", "m|m3");
+		milage.baseUnit.addSIScalers(1);
+		unit = milage.addUnit("meters per litre", "m|l", new BigDecimal("1000"));
+		unit.addSIScalers(1);
+		//TODO milage
+		unit = milage.addUnit("miles per gallon (US)", "mpg", Unit.unitMap.get("mi").baseRelation.divide(Unit.unitMap.get("gal_us").baseRelation, 100, BigDecimal.ROUND_HALF_UP));
 		
 		Measure velocity = new Measure("velocity", 1,0,-1,0,0,0,0);
 		velocity.setBaseUnit("meter per second", "m|s");
@@ -751,7 +785,8 @@ public class Calculator {
 		
 		Measure wawenumber = new Measure("wawenumber", -1,0,0,0,0,0,0);
 		wawenumber.setBaseUnit("reciporal meter", "1|m");
-		// TODO add reciporal units
+		wawenumber.baseUnit.addAlternativeAbr("|m");
+		wawenumber.baseUnit.addSIScalers(-1, "|m");
 		
 		Measure areaDensity = new Measure("areaDensity", -2,1,0,0,0,0,0);
 		areaDensity.setBaseUnit("kilogram per square meter", "kg|m2");

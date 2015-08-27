@@ -16,6 +16,7 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.LinkedList;
 
@@ -143,7 +144,6 @@ public class CalcGUI extends JFrame {
 					}
 				}
 			}
-
 			@Override
 			public void keyReleased(KeyEvent arg0) {
 				//Do nothing
@@ -153,7 +153,6 @@ public class CalcGUI extends JFrame {
 			public void keyTyped(KeyEvent e) {
 				// Do nothing
 			}
-			
 		});
 		
 		
@@ -215,7 +214,6 @@ public class CalcGUI extends JFrame {
 			}
 		});
 		
-		/**/
 		JMenuItem menuItemUnitList = new JMenuItem("List of units (Finnish)", KeyEvent.VK_T);
 		helpMenu.add(menuItemUnitList);
 		menuItemUnitList.addActionListener(new ActionListener() {
@@ -228,7 +226,6 @@ public class CalcGUI extends JFrame {
 			    }
 			}
 		});
-		
 		
 	    add(middlePanel);
 	    pack();
