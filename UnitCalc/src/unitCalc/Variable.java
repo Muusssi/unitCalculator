@@ -19,12 +19,7 @@ public class Variable {
 	
 	public String id = "var";
 	public LinkedList<String> alternativeIds = new LinkedList<String>();
-	public BigDecimal value = null;
-	
-	public BigDecimal accumulatedMaxValue = null;
-	public BigDecimal accumulatedMinValue = null;
-	
-	
+	public Number value = null;
 	
 	public int[] siBase = new int[7];
 	public Measure measure = null;
@@ -38,10 +33,8 @@ public class Variable {
 	boolean isOperation = false;
 	boolean isFunction = false;
 	
-	public Variable(BigDecimal value, String id, int[] siBase) {
+	public Variable(Number value, String id, int[] siBase) {
 		this.value = value;
-		this.accumulatedMaxValue = this.value;
-		this.accumulatedMinValue = this.value;
 		if (siBase == null) {
 			this.siBase = new int[7];
 			this.measure = Calculator.unitlesMeasure;
@@ -82,43 +75,17 @@ public class Variable {
 		return true;
 	}
 	
-	public boolean isInteger() {
-		if (this.value.divideAndRemainder(BigDecimal.ONE)[1].compareTo(BigDecimal.ZERO) == 0) {
-			return true;
-		}
-		else {
-			return false;
-		}
+	
+	public void setMeasurementError(String measurementError) {
+		this.value.setError(measurementError);
 	}
 	
-	
-	private int getNumberOfDecimalPlaces() {
-	    String string = this.value.toPlainString();
-	    int index = string.indexOf(".");
-	    return index < 0 ? 0 : string.length() - index - 1;
-	}
-	
-	public void setMeasurementError(BigDecimal measurementError) {
-		if (measurementError == null) {
-			int decimalPlaces = this.getNumberOfDecimalPlaces();
-			int scale = this.value.scale();
-			if (decimalPlaces != 0) {
-				this.accumulatedMaxValue = this.value.add(new BigDecimal("5e-"+(decimalPlaces+1)));
-				this.accumulatedMinValue = this.value.subtract(new BigDecimal("5e-"+(decimalPlaces+1)));
-			}
-			else {
-				this.accumulatedMaxValue = this.value;
-				this.accumulatedMinValue = this.value;
-			}
-		}
-		else {
-			this.accumulatedMaxValue = this.value.add(measurementError);
-			this.accumulatedMinValue = this.value.subtract(measurementError);
-		}
+	public void setMeasurementError(Number measurementError) {
+		this.value.setError(measurementError);
 	}
 	
 	/** For constants */
-	public static Variable makeConstant(BigDecimal value, String id, int[] siBase, String name, BigDecimal measurementError) {// TODO Constant error
+	public static Variable makeConstant(Number value, String id, int[] siBase, String name, String measurementError) {// TODO Constant error
 		Variable constant = new Variable(value, id, siBase);
 		constant.setMeasurementError(measurementError);
 		constant.isConstant = true;
@@ -135,9 +102,7 @@ public class Variable {
 	
 	/** Sets the given unit for a unitless variable */
 	public void setUnit(Unit unit) {// TODO Assuming that units are exact...
-		this.value = this.value.multiply(unit.baseRelation);
-		this.accumulatedMaxValue = this.accumulatedMaxValue.multiply(unit.baseRelation);
-		this.accumulatedMinValue = this.accumulatedMinValue.multiply(unit.baseRelation);
+		this.value = this.value.multiply(new Number(unit.baseRelation));
 		this.measure = unit.measure;
 		this.siBase = new int[7];
 		System.arraycopy(unit.measure.siBase, 0, this.siBase, 0, 7);
@@ -154,13 +119,11 @@ public class Variable {
 		if (op == CalcToken.TokenType.UMIN) {
 			System.arraycopy(var1.siBase, 0, ansSIbase, 0, 7);
 			ans = new Variable(var1.value.negate(), null, ansSIbase);
-			ans.accumulatedMaxValue = var1.accumulatedMinValue.negate();
-			ans.accumulatedMinValue = var1.accumulatedMaxValue.negate();
 			return ans;
 		}
 		
 		else if (op == CalcToken.TokenType.FACT) {
-			ans = Function.factorial(var1);
+			ans = new Variable(var1.value.factorial(), null, ansSIbase);
 			return ans;
 		}
 		else if (op == CalcToken.TokenType.POW) { // TODO non integer (& negative) powers
@@ -169,27 +132,21 @@ public class Variable {
 				var2.show();
 				return null;
 			}
-			else if (var2.value.compareTo(new BigDecimal("100")) >= 0) {
+			else if (var2.value.compareTo("100") >= 0) {
 				Calculator.inform("Math error: powers greater than 100 are not supported for performance reasons.");
 				var2.show();
 				return null;
 			} 
-			else if ( var2.value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0) {
+			else if ( var2.value.hasIntegerValue()) {
 				int pow = var2.value.intValue();
-				if (pow < 0) {
-					Calculator.inform("Math error: negative powers are not supported.");
-					return null;
-				}
 				for (int i=0; i<7; i++) {
 					ansSIbase[i] = var1.siBase[i]*pow;
 				}
-				ans = new Variable(var1.value.pow(pow), null, ansSIbase);
-				ans.accumulatedMaxValue = var1.accumulatedMaxValue.pow(pow);
-				ans.accumulatedMinValue = var1.accumulatedMinValue.pow(pow);
+				ans = new Variable(var1.value.pow(var2.value), null, ansSIbase);
 				return ans;
 			}
 			else {
-				Calculator.inform("Math error: only non-negative integer powers are supported.");
+				Calculator.inform("Math error: only integer powers are supported.");
 				return null;
 			}
 		}
@@ -199,53 +156,24 @@ public class Variable {
 				ansSIbase[i] = var1.siBase[i] + var2.siBase[i];
 			}
 			ans = new Variable(var1.value.multiply(var2.value), null, ansSIbase);
-			BigDecimal min1min2 = var1.accumulatedMinValue.multiply(var2.accumulatedMinValue);
-			BigDecimal min1max2 = var1.accumulatedMinValue.multiply(var2.accumulatedMaxValue);
-			BigDecimal max1min2 = var1.accumulatedMaxValue.multiply(var2.accumulatedMinValue);
-			BigDecimal max1max2 = var1.accumulatedMaxValue.multiply(var2.accumulatedMaxValue);
-			ans.accumulatedMaxValue = min1min2.max(min1max2);
-			ans.accumulatedMaxValue = ans.accumulatedMaxValue.max(max1min2);
-			ans.accumulatedMaxValue = ans.accumulatedMaxValue.max(max1max2);
-			ans.accumulatedMinValue = min1min2.min(min1max2);
-			ans.accumulatedMinValue = ans.accumulatedMinValue.min(max1min2);
-			ans.accumulatedMinValue = ans.accumulatedMinValue.min(max1max2);
 			return ans;
 		}
 		else if (op == CalcToken.TokenType.DIV) {//TODO acc error + div by possibly zero
-			if (var2.value.compareTo(BigDecimal.ZERO) == 0) {
-				Calculator.inform("Math error: division by zero");
-				return null;
-			}
-			else if (var2.accumulatedMaxValue.signum() != var2.accumulatedMinValue.signum()) {
-				Calculator.inform("Error: Zero is in the range of possible measurement error of the divisor.\nPossible divivison by zero.");
-				var2.show();
+			if (var2.value.isZero()) {
+				if (Calculator.useMeasurementError) {
+					Calculator.inform("Math error: Zero is in the range of possible measurement error of the divisor.\nPossible divivison by zero.");
+					var2.show();
+				}
+				else {
+					Calculator.inform("Math error: division by zero");
+				}
 				return null;
 			}
 			
 			for (int i=0; i<7; i++) {
 				ansSIbase[i] = var1.siBase[i] - var2.siBase[i];
 			}
-			if  (var1.value.compareTo(BigDecimal.ZERO) == 0) {
-				ans = new Variable(BigDecimal.ZERO, null, ansSIbase);
-			}
-			else {
-				try {
-					ans = new Variable(var1.value.divide(var2.value), null, ansSIbase);
-				}
-				catch (ArithmeticException ae) {
-					ans = new Variable(var1.value.divide(var2.value, 100, RoundingMode.HALF_UP), null, ansSIbase);
-				}
-			}
-			BigDecimal min1min2 = var1.accumulatedMinValue.divide(var2.accumulatedMinValue, 100, RoundingMode.HALF_UP);
-			BigDecimal min1max2 = var1.accumulatedMinValue.divide(var2.accumulatedMaxValue, 100, RoundingMode.HALF_UP);
-			BigDecimal max1min2 = var1.accumulatedMaxValue.divide(var2.accumulatedMinValue, 100, RoundingMode.HALF_UP);
-			BigDecimal max1max2 = var1.accumulatedMaxValue.divide(var2.accumulatedMaxValue, 100, RoundingMode.HALF_UP);
-			ans.accumulatedMaxValue = min1min2.max(min1max2);
-			ans.accumulatedMaxValue = ans.accumulatedMaxValue.max(max1min2);
-			ans.accumulatedMaxValue = ans.accumulatedMaxValue.max(max1max2);
-			ans.accumulatedMinValue = min1min2.min(min1max2);
-			ans.accumulatedMinValue = ans.accumulatedMinValue.min(max1min2);
-			ans.accumulatedMinValue = ans.accumulatedMinValue.min(max1max2);
+			ans = new Variable(var1.value.divide(var2.value), null, ansSIbase);
 			return ans;
 		}
 		else if (op == CalcToken.TokenType.SUM || op == CalcToken.TokenType.SUB) {
@@ -260,14 +188,10 @@ public class Variable {
 				System.arraycopy(var1.siBase, 0, ansSIbase, 0, 7);
 				if (op == CalcToken.TokenType.SUM) {
 					ans = new Variable(var1.value.add(var2.value), null, ansSIbase);
-					ans.accumulatedMaxValue = var1.accumulatedMaxValue.add(var2.accumulatedMaxValue);
-					ans.accumulatedMinValue = var1.accumulatedMinValue.add(var2.accumulatedMinValue);
 					return ans;
 				}
 				else if (op == CalcToken.TokenType.SUB) {
 					ans = new Variable(var1.value.subtract(var2.value), null, ansSIbase);
-					ans.accumulatedMaxValue = var1.accumulatedMaxValue.subtract(var2.accumulatedMinValue);
-					ans.accumulatedMinValue = var2.accumulatedMinValue.subtract(var2.accumulatedMaxValue);
 					return ans;
 				}
 			}
@@ -394,13 +318,13 @@ public class Variable {
 			if (maxError.compareTo(new BigDecimal("1e-50")) > 0) {
 				String errorLine;
 				if (this.isUnitless()) {
-					errorLine = "±"+maxError.setScale(30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString();
+					errorLine = "ï¿½"+maxError.setScale(30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString();
 				}
 				else {
-					errorLine = "±"+maxError.setScale(30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.measure.baseUnit.abr;
+					errorLine = "ï¿½"+maxError.setScale(30, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" "+this.measure.baseUnit.abr;
 				}
 				if (Calculator.showErrorPercentage && this.value.compareTo(BigDecimal.ZERO) != 0 && maxError.divide(this.value, 5, BigDecimal.ROUND_HALF_UP).compareTo(new BigDecimal("5e-5")) > 0) {
-					Calculator.inform(errorLine+" Error Å "+maxError.multiply(new BigDecimal("100")).divide(this.value, 5, BigDecimal.ROUND_HALF_UP).setScale(5, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" %");
+					Calculator.inform(errorLine+" Error ï¿½ "+maxError.multiply(new BigDecimal("100")).divide(this.value, 5, BigDecimal.ROUND_HALF_UP).setScale(5, BigDecimal.ROUND_HALF_UP).stripTrailingZeros().toPlainString()+" %");
 				}
 				else {
 					if (Calculator.showErrorPercentage) {

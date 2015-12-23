@@ -43,44 +43,6 @@ public class Function {
 			return this.functionEvaluator.evaluate(arguments);
 		}
 	}
-	
-	
-	public static Variable factorial(Variable arg) {
-		if (!arg.isUnitless()) {
-			Calculator.inform("Math error: factorial is only defined for unitless variables.");
-			arg.show();
-			return null;
-		}
-		if (arg.value.compareTo(BigDecimal.ZERO) <= 0 || arg.value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) > 0) {
-			Calculator.inform("Math error: factorial is only defined for positive integers.");
-			arg.show();
-			return null;
-		}
-		BigDecimal ans = new BigDecimal(1);
-		BigDecimal multiplier = new BigDecimal(1);
-		while (multiplier.compareTo(arg.value) < 0) {
-			multiplier = multiplier.add(BigDecimal.ONE);
-			ans = ans.multiply(multiplier);
-		}
-		Variable ansVar = new Variable(ans, null, null);
-		
-		BigDecimal max = new BigDecimal(1);
-		multiplier = new BigDecimal(1);
-		while (multiplier.compareTo(arg.accumulatedMaxValue.subtract(BigDecimal.ONE)) <= 0) {
-			multiplier = multiplier.add(BigDecimal.ONE);
-			max = max.multiply(multiplier);
-		}
-		ansVar.accumulatedMaxValue = max;
-		
-		BigDecimal min = new BigDecimal(1);
-		multiplier = new BigDecimal(1);
-		while (multiplier.compareTo(arg.accumulatedMinValue.subtract(BigDecimal.ONE)) <= 0) {
-			multiplier = multiplier.add(BigDecimal.ONE);
-			min = min.multiply(multiplier);
-		}
-		ansVar.accumulatedMinValue = min;
-		return ansVar;
-	}
 
 	
 	

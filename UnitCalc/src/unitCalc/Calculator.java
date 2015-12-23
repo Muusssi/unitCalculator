@@ -113,12 +113,8 @@ public class Calculator {
 			ans = evaluate(postFix);
 			if (ans != null) {
 				Variable namedVar = new Variable(ans.value, varName, ans.siBase);
-				namedVar.accumulatedMaxValue = ans.accumulatedMaxValue;
-				namedVar.accumulatedMinValue = ans.accumulatedMinValue;
 				namedVar.show();
 				namedVar = new Variable(ans.value, "ans", ans.siBase);
-				namedVar.accumulatedMaxValue = ans.accumulatedMaxValue;
-				namedVar.accumulatedMinValue = ans.accumulatedMinValue;
 				
 			}
 		}
@@ -164,8 +160,6 @@ public class Calculator {
 					ans.show();
 				}
 				Variable previousAns = new Variable(ans.value, "ans", ans.siBase);
-				previousAns.accumulatedMaxValue = ans.accumulatedMaxValue;
-				previousAns.accumulatedMinValue = ans.accumulatedMinValue;
 			}
 		}
 		Calculator.inform("-----------------------");
@@ -284,8 +278,6 @@ public class Calculator {
 					if (Variable.varMap.containsKey(tok.id)) {
 						Variable namedVar = Variable.varMap.get(tok.id);
 						Variable newVar = new Variable(namedVar.value, null, namedVar.siBase);
-						newVar.accumulatedMaxValue = namedVar.accumulatedMaxValue;
-						newVar.accumulatedMinValue = namedVar.accumulatedMinValue;
 						postFix.add(newVar);
 						if (Variable.varMap.get(tok.id).isUnitless()) {
 							expectingUnit = true;
@@ -340,10 +332,9 @@ public class Calculator {
 					showError(tok.index);
 					return null;
 				}
-				BigDecimal a = new BigDecimal(tok.id);
-				Variable var = new Variable(a, null, null);
+				Variable var = new Variable(new Number(tok.id), null, null);
 				if (useMeasurementError) {
-					var.setMeasurementError(null);
+					var.setMeasurementError("");
 				}
 				postFix.add(var);
 				expectingUnit = true;
@@ -438,7 +429,7 @@ public class Calculator {
 					return null;
 				}
 				if (tok.type == CalcToken.TokenType.NUM) {
-					var.setMeasurementError(new BigDecimal(tok.id));
+					var.setMeasurementError(tok.id);
 				}
 				// Does not accumulate error from the explicit error variables error
 				else if (Variable.varMap.get(tok.id).isUnitless()) {
@@ -918,41 +909,37 @@ public class Calculator {
 
 
 		// Constants
-		Variable.makeConstant(new BigDecimal("2.99792458E8"), "c", velocity.siBase, "speed of light", null);
-		Variable.makeConstant(new BigDecimal("6.67259E-11"), "G", gravitationalConstantMeasure.siBase, "Newtonian constant of gravitation", null);
-		Variable.makeConstant(new BigDecimal("9.80665"), "g", acceleration.siBase, "normal gravitational acceleration", null);
-		Variable.makeConstant(new BigDecimal("273.15"), "T_0", temperature.siBase, "normal temperature", BigDecimal.ZERO);
-		Variable.makeConstant(new BigDecimal("101325"), "p_0", pressure.siBase, "standard atmospheric pressure", BigDecimal.ZERO);
-		Variable.makeConstant(new BigDecimal("22.41410E-3"), "V_m", molarVolume.siBase, "molar volume of ideal gas", null);
-		Variable.makeConstant(new BigDecimal("8.314510"), "R", molarEntropy.siBase, "molar gas constant", null);
-		Variable.makeConstant(new BigDecimal("6.0221367E23"), "N_A", Measure.unitlessBase, "Avogadro's constant", null);
+		Variable.makeConstant(new Number("2.99792458E8"), "c", velocity.siBase, "speed of light", "");
+		Variable.makeConstant(new Number("6.67259E-11"), "G", gravitationalConstantMeasure.siBase, "Newtonian constant of gravitation", "");
+		Variable.makeConstant(new Number("9.80665"), "g", acceleration.siBase, "normal gravitational acceleration", "");
+		Variable.makeConstant(new Number("273.15"), "T_0", temperature.siBase, "normal temperature", "0");
+		Variable.makeConstant(new Number("101325"), "p_0", pressure.siBase, "standard atmospheric pressure", "0");
+		Variable.makeConstant(new Number("22.41410E-3"), "V_m", molarVolume.siBase, "molar volume of ideal gas", "");
+		Variable.makeConstant(new Number("8.314510"), "R", molarEntropy.siBase, "molar gas constant", "");
+		Variable.makeConstant(new Number("6.0221367E23"), "N_A", Measure.unitlessBase, "Avogadro's constant", "");
 		
-		pi = Variable.makeConstant(new BigDecimal("3.14159265358979323846264338327950288419716939937510"), "¹", Measure.unitlessBase, "pi", null);
+		pi = Variable.makeConstant(Number.pi, "¹", Measure.unitlessBase, "pi", "");
 		pi.addAlternativeId("pi");
-		PI = pi.value;
-		PIx05 = pi.value.multiply(new BigDecimal("0.5"));
-		PIx2 = pi.value.multiply(new BigDecimal("2"));
-		PIx15 = pi.value.multiply(new BigDecimal("1.5"));
-		e = Variable.makeConstant(new BigDecimal("2.71828182845904523536028747135266249775724709369995"), "e", Measure.unitlessBase, "Napier's constant", null);
+		e = Variable.makeConstant(Number.e, "e", Measure.unitlessBase, "Napier's constant", "");
 		
-		Variable.makeConstant(new BigDecimal("9.1093897E-31"), "m_e", mass.siBase, "invariant mass of an electron", null);
-		Variable.makeConstant(new BigDecimal("1.6726231E-27"), "m_p", mass.siBase, "invariant mass of a proton", null);
-		Variable.makeConstant(new BigDecimal("1.6749286E-27"), "m_n", mass.siBase, "invariant mass of a neutron", null);
-		Variable.makeConstant(new BigDecimal("3.3435860E-27"), "m_d", mass.siBase, "invariant mass of a deuteron", null);
-		Variable.makeConstant(new BigDecimal("6.644663E-27"), "m_alpha", mass.siBase, "invariant mass of a alpha particle", null);
+		Variable.makeConstant(new Number("9.1093897E-31"), "m_e", mass.siBase, "invariant mass of an electron", "");
+		Variable.makeConstant(new Number("1.6726231E-27"), "m_p", mass.siBase, "invariant mass of a proton", "");
+		Variable.makeConstant(new Number("1.6749286E-27"), "m_n", mass.siBase, "invariant mass of a neutron", "");
+		Variable.makeConstant(new Number("3.3435860E-27"), "m_d", mass.siBase, "invariant mass of a deuteron", "");
+		Variable.makeConstant(new Number("6.644663E-27"), "m_alpha", mass.siBase, "invariant mass of a alpha particle", "");
 
-		Variable.makeConstant(new BigDecimal("8.85419"), "epsilon_0", permittivity.siBase, "permittivity of vacuum", null);
-		Variable var = Variable.makeConstant(new BigDecimal("1.25664"), "µ_0", permeability.siBase, "permeability of vacuum", null);
+		Variable.makeConstant(new Number("8.85419"), "epsilon_0", permittivity.siBase, "permittivity of vacuum", "");
+		Variable var = Variable.makeConstant(new Number("1.25664"), "µ_0", permeability.siBase, "permeability of vacuum", "");
 		var.addAlternativeId("mu_0");
 
-		Variable.makeConstant(new BigDecimal("6.6260755E-34"), "h", action.siBase, "Planck's constant", null);
+		Variable.makeConstant(new Number("6.6260755E-34"), "h", action.siBase, "Planck's constant", "");
 
 		// Note frequencies:
-		Variable.makeConstant(new BigDecimal("16.35"), "C0", frequency.siBase, "frequency of note C0", null);
-		Variable consti = Variable.makeConstant(new BigDecimal("17.32"), "C#0", frequency.siBase, "frequency of note C#0", null);
+		Variable.makeConstant(new Number("16.35"), "C0", frequency.siBase, "frequency of note C0", "");
+		Variable consti = Variable.makeConstant(new Number("17.32"), "C#0", frequency.siBase, "frequency of note C#0", "");
 		consti.addAlternativeId("Db0");
-		Variable.makeConstant(new BigDecimal("18.35"), "D0", frequency.siBase, "frequency of note D0", null);
-		consti = Variable.makeConstant(new BigDecimal("19.45"), "D#0", frequency.siBase, "frequency of note D#0", null);
+		Variable.makeConstant(new Number("18.35"), "D0", frequency.siBase, "frequency of note D0", "");
+		consti = Variable.makeConstant(new Number("19.45"), "D#0", frequency.siBase, "frequency of note D#0", "");
 		consti.addAlternativeId("Eb0");
 		
 		
